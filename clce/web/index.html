@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AZ-CLCE — Cross-Layer Consistency Engine</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <div class="tag">AZ-CLCE · v0.1.0 · loopback · advisory</div>
+    <h1>AZ-CLCE</h1>
+    <p class="motto">Cross-Layer Consistency Engine. Inconsistency, not intent.</p>
+    <p class="lede">
+      Score representation (R), description (D), and reality (P) as token sets.
+      Jaccard triple, pairwise average, optional CLCE+ with missing elements (N).
+      Type D is a label, not a finding of malice. Human validation required.
+    </p>
+  </header>
+
+  <aside class="banner limit" role="note">
+    CLCE detects inconsistency, not intent. Type D is a label, not a finding of
+    malice. Not a cybersecurity exploit, not a scanner of other people's systems,
+    not a lie detector. Advisory scores only. Threshold 0.7 is the paper's
+    acceptable line, not a pass/fail of truth. Loopback UI. Self-contained CSS. No telemetry.
+  </aside>
+
+  <form id="clce-form" autocomplete="off">
+    <fieldset>
+      <legend>Layers</legend>
+
+      <label for="r">
+        <span class="kicker">R — Representation</span>
+        Visuals, diagrams, UI. Tokens, lowercase, split on non-alnum.
+      </label>
+      <textarea id="r" name="r" rows="4" placeholder="login button blue submit"></textarea>
+
+      <label for="d">
+        <span class="kicker">D — Description</span>
+        Text, instructions, claims.
+      </label>
+      <textarea id="d" name="d" rows="4" placeholder="login form submits credentials"></textarea>
+
+      <label for="p">
+        <span class="kicker">P — Reality</span>
+        Physical or functional truth.
+      </label>
+      <textarea id="p" name="p" rows="4" placeholder="login button submits credentials"></textarea>
+
+      <label for="n">
+        <span class="kicker">N — Missing expected (optional)</span>
+        Negative space. Higher N reduces the CLCE+ score.
+      </label>
+      <textarea id="n" name="n" rows="2" placeholder="csrf session timeout"></textarea>
+    </fieldset>
+
+    <div class="actions">
+      <button type="submit" id="score" data-mode="score">Score</button>
+      <button type="button" id="classify" data-mode="classify">Classify</button>
+      <button type="button" id="gate" data-mode="gate">Gate ≥ 0.7</button>
+    </div>
+  </form>
+
+  <section class="report" aria-live="polite">
+    <h2>Report</h2>
+    <dl id="metrics">
+      <div><dt>triple</dt><dd id="m-triple">—</dd></div>
+      <div><dt>R↔D</dt><dd id="m-rd">—</dd></div>
+      <div><dt>D↔P</dt><dd id="m-dp">—</dd></div>
+      <div><dt>R↔P</dt><dd id="m-rp">—</dd></div>
+      <div><dt>pairwise avg</dt><dd id="m-avg">—</dd></div>
+      <div><dt>CLCE+</dt><dd id="m-plus">—</dd></div>
+    </dl>
+    <p id="band" class="band idle">No run yet.</p>
+    <ul id="types" class="types"></ul>
+    <p id="gate-line" class="gate-line"></p>
+  </section>
+
+  <footer>
+    <p>Apache-2.0 · Aziel Eliab · 2026 · Bound to 127.0.0.1:8845 · Forks welcome and always allowed.</p>
+    <p class="foot-note">Standalone from ForgeReceipts, ZionPattern, DecisionGATE, AZ-OS, Glossa Filter.</p>
+  </footer>
+  <script src="/app.js"></script>
+</body>
+</html>

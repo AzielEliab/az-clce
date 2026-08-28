@@ -54,3 +54,12 @@ https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.1.
 ## CORS
 
 All responses include `Access-Control-Allow-Origin: *`.
+
+`POST /v1/score` `POST /v1/classify` `POST /v1/gate`. Inconsistency not intent.
+
+## AI runtime (`/v1`)
+
+CORS `*`. `GET /v1/health`, `GET /openapi.json` (OpenAPI 3.1), `GET /ai`.
+Routes under `/v1` **do not** increment download KV.
+
+Help page: `/ai`. Combined catalog: https://aziel-runtime.vibelock.workers.dev/

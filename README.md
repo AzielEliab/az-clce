@@ -163,6 +163,22 @@ mobile/               Flutter iPhone + Android (`flutter create .`)
 workers/download-tracker/   Cloudflare Worker
 ```
 
+## AI runtime
+
+CLCE detects **inconsistency, not intent**. Type D is a label, not a
+finding of malice. Threshold 0.7 is advisory.
+
+- `POST https://azclce-download-tracker.vibelock.workers.dev/v1/score` `{r,d,p,n}`
+- `POST https://azclce-download-tracker.vibelock.workers.dev/v1/classify` `{r,d,p,n}`
+- `POST https://azclce-download-tracker.vibelock.workers.dev/v1/gate` `{r,d,p,n,min}`
+- OpenAPI 3.1: https://azclce-download-tracker.vibelock.workers.dev/openapi.json
+- Help: https://azclce-download-tracker.vibelock.workers.dev/ai
+
+`/v1` does not increment the download counter.
+
+One-URL catalog: https://aziel-runtime.vibelock.workers.dev/openapi.json
+
+
 ## License
 
 Apache-2.0. See [LICENSE](LICENSE).

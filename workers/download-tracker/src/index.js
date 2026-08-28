@@ -1,3 +1,4 @@
+import * as engine from "./engine.js";
 /**
  * AZ-CLCE download tracker (Cloudflare Worker).
  *
@@ -206,10 +207,147 @@ async function indexHtml(env) {
     <p class="meta">The count ticks on this click. Nobody reports anything. Forks using this same link are counted automatically.</p>
     <p class="iso">Isolated counter: Worker <code>azclce-download-tracker</code>, project <code>azclce</code>. Not mixed with any other product.</p>
     <p class="limit">CLCE detects inconsistency, not intent. Type D is a label, not a finding of malice. Human validation required. Advisory scores only. Forks welcome and always allowed.</p>
-    <p class="meta"><a href="/stats">JSON stats</a> · <a href="${github}">GitHub releases</a></p>
+    <p class="meta"><a href="/ai">AI runtime</a> · <a href="/openapi.json">OpenAPI</a> · <a href="/stats">JSON stats</a> · <a href="${github}">GitHub releases</a></p>
   </div>
 </body>
 </html>`;
+}
+
+
+function html(body) {
+  return new Response(body, {
+    headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders() },
+  });
+}
+
+function originOf(request) {
+  try {
+    return new URL(request.url).origin;
+  } catch {
+    return "https://azclce-download-tracker.vibelock.workers.dev";
+  }
+}
+
+function openapiSpec(request) {
+  const origin = originOf(request);
+  const layers = {
+    type: "object",
+    properties: {
+      r: { description: "Representation layer (string or token array)" },
+      d: { description: "Description layer" },
+      p: { description: "Reality / performance layer" },
+      n: { description: "Optional negative space" },
+    },
+  };
+  return {
+    openapi: "3.1.0",
+    info: {
+      title: "AZ-CLCE runtime",
+      version: "0.1.0",
+      summary: "Cross-Layer Consistency Engine. Inconsistency, not intent.",
+      description: engine.LIMITATION,
+    },
+    servers: [{ url: origin }],
+    paths: {
+      "/v1/health": { get: { operationId: "azclce_health", summary: "Liveness. Does not increment download KV.", responses: { "200": { description: "ok" } } } },
+      "/v1/score": {
+        post: {
+          operationId: "azclce_score",
+          summary: "Jaccard triple, pairwise average, CLCE+. Advisory. Threshold 0.7.",
+          requestBody: { required: true, content: { "application/json": { schema: layers } } },
+          responses: { "200": { description: "report" } },
+        },
+      },
+      "/v1/classify": {
+        post: {
+          operationId: "azclce_classify",
+          summary: "Same as score plus mismatch types. Type D is a label only.",
+          requestBody: { required: true, content: { "application/json": { schema: layers } } },
+          responses: { "200": { description: "report" } },
+        },
+      },
+      "/v1/gate": {
+        post: {
+          operationId: "azclce_gate",
+          summary: "Pass iff triple ≥ min_score (default 0.7). Advisory, not a truth verdict.",
+          requestBody: { required: true, content: { "application/json": { schema: { type: "object", properties: { r: {}, d: {}, p: {}, n: {}, min: {}, min_score: {} } } } } },
+          responses: { "200": { description: "passed + report" } },
+        },
+      },
+    },
+  };
+}
+
+function aiHelpPage(request) {
+  const origin = originOf(request);
+  return `<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AZ-CLCE — AI runtime</title>
+<style>
+  :root { color-scheme: dark; }
+  body { font: 16px/1.45 system-ui, sans-serif; max-width: 44rem; margin: 3rem auto; padding: 0 1.25rem; background: #0e1014; color: #e8eaef; }
+  a { color: #c9d4ff; }
+  code, pre { background: #151922; padding: .15rem .35rem; border-radius: 4px; }
+  pre { padding: .85rem 1rem; overflow: auto; }
+  .banner { border: 1px solid #5c4a1a; background: #241c0d; color: #f0d78c; padding: .85rem 1rem; border-radius: 8px; }
+</style>
+<body>
+<h1>AZ-CLCE runtime</h1>
+<p class="banner">${engine.LIMITATION}</p>
+<p>OpenAPI: <a href="${origin}/openapi.json">${origin}/openapi.json</a></p>
+<p>Catalog: <a href="https://aziel-runtime.vibelock.workers.dev/">aziel-runtime.vibelock.workers.dev</a></p>
+<pre>curl -X POST ${origin}/v1/score -H 'content-type: application/json' \\
+  -d '{"r":"login button blue","d":"login form submits","p":"login button submits"}'
+curl -X POST ${origin}/v1/classify -H 'content-type: application/json' \\
+  -d '{"r":"...","d":"...","p":"...","n":"csrf session"}'
+curl -X POST ${origin}/v1/gate -H 'content-type: application/json' \\
+  -d '{"r":"a","d":"a","p":"a","min":0.7}'
+</pre>
+<p>GET/POST under <code>/v1</code> never increment the download counter.</p>
+<p><a href="/">Downloads</a></p>
+</body></html>`;
+}
+
+function layersFrom(body) {
+  const { r, d, p, n } = engine.parseLayers(body || {});
+  return { r, d, p, n };
+}
+
+async function handleRuntime(request, url) {
+  const path = url.pathname.replace(/\/+$/, "") || "/";
+  if (path === "/v1/health" && request.method === "GET") {
+    return json({
+      ok: true,
+      product: "azclce",
+      runtime: true,
+      kv_increment: false,
+      limitation: engine.LIMITATION,
+      threshold: engine.THRESHOLD,
+      advisory: true,
+    });
+  }
+  if (path === "/openapi.json" && request.method === "GET") {
+    return json(openapiSpec(request));
+  }
+  if ((path === "/ai" || url.pathname === "/ai/") && request.method === "GET") {
+    return html(aiHelpPage(request));
+  }
+  if ((path === "/v1/score" || path === "/v1/classify" || path === "/v1/gate") && request.method === "POST") {
+    let body;
+    try { body = await request.json(); } catch {
+      return json({ error: "JSON body required", limitation: engine.LIMITATION }, 400);
+    }
+    const { r, d, p, n } = layersFrom(body);
+    if (path === "/v1/gate") {
+      const min = body.min_score != null ? body.min_score : body.min;
+      return json(engine.gate(r, d, p, n, min));
+    }
+    return json(engine.score(r, d, p, n));
+  }
+  if (path.startsWith("/v1/") || path === "/v1") {
+    return json({ error: "not found", hint: "POST /v1/score /v1/classify /v1/gate", limitation: engine.LIMITATION }, 404);
+  }
+  return null;
 }
 
 export default {
@@ -219,6 +357,9 @@ export default {
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders() });
     }
+
+    const runtime = await handleRuntime(request, url);
+    if (runtime) return runtime;
 
     if (url.pathname === "/" && request.method === "GET") {
       return new Response(await indexHtml(env), {

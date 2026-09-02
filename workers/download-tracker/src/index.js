@@ -1,4 +1,6 @@
 import * as engine from "./engine.js";
+
+const SKILL_MARKDOWN = "---\nname: AZ-CLCE\ndescription: Use when calling AZ-CLCE hosted /v1 or installing the local package. Author Aziel Eliab.\n---\n\n# AZ-CLCE\n\nCLCE detects inconsistency, not intent. Type D is a label, not a finding of malice. Human validation required. Author: Aziel Eliab.\n\n**THIS IS:** a Cross-Layer Consistency Engine that scores inconsistency across representation (R), description (D), and reality (P).\n\n**THIS IS NOT:** a finding of malice, a cybersecurity exploit, a scanner of other people's systems, or a truth verdict. Type D is a label only.\n\nAuthor: **Aziel Eliab**. Forks are welcome and always allowed. Apache-2.0.\n\nAlways send `User-Agent: Mozilla/5.0`. Cloudflare Workers may 403 an empty agent.\n\n## Call these URLs\n\n- Worker OpenAPI: https://azclce-download-tracker.vibelock.workers.dev/openapi.json\n- Catalog OpenAPI: https://aziel-runtime.vibelock.workers.dev/openapi.json\n- MCP: `POST https://aziel-runtime.vibelock.workers.dev/mcp`\n- Live skill (this markdown): `GET https://azclce-download-tracker.vibelock.workers.dev/v1/skill`\n\nOps (do **not** increment downloads or views):\n\n| Method | Path | What |\n|--------|------|------|\n| GET | `/v1/health` | Liveness. Does not increment downloads. |\n| GET | `/v1/skill` | This markdown. Does not increment downloads. |\n| POST | `/v1/score` | Jaccard triple, pairwise average, CLCE+. Advisory. |\n| POST | `/v1/classify` | Same as score plus mismatch types. Type D is a label only. |\n| POST | `/v1/gate` | Pass iff triple >= min_score. Advisory, not a truth verdict. |\n\nGrok: import OpenAPI as a custom tool. ChatGPT: GPT Actions. Venice: HTTP tools.\n\n## Example\n\n```bash\ncurl -s -A 'Mozilla/5.0' https://azclce-download-tracker.vibelock.workers.dev/v1/health\ncurl -s -A 'Mozilla/5.0' https://azclce-download-tracker.vibelock.workers.dev/v1/skill\ncurl -s -A 'Mozilla/5.0' -X POST https://azclce-download-tracker.vibelock.workers.dev/v1/score \\\n  -H 'content-type: application/json' \\\n  -d '{\"r\":\"login button blue\",\"d\":\"login form submits\",\"p\":\"login button submits\"}'\n```\n\n## Local (after one-click install)\n\n```bash\ncurl -fsSL https://azclce-download-tracker.vibelock.workers.dev/install.sh | bash\nclce ui\n```\n\nThen open http://127.0.0.1:8845 (loopback only).\n\nCounted download (gzip HTTP 200, no 302): https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.2.0.tar.gz\nGitHub: https://github.com/AzielEliab/az-clce\n";
 /**
  * AZ-CLCE download tracker (Cloudflare Worker).
  *
@@ -20,6 +22,9 @@ const DEFAULT_ASSET = "az-clce-0.2.0.tar.gz";
 const DEFAULT_OWNER = "AzielEliab";
 const DEFAULT_REPO = "az-clce";
 const DEFAULT_BRANCH = "main";
+const HOST = "https://azclce-download-tracker.vibelock.workers.dev";
+const GITHUB_REPO = "https://github.com/AzielEliab/az-clce";
+
 const GITHUB_RELEASES = "https://github.com/AzielEliab/az-clce/releases";
 const GITHUB_LATEST = "https://github.com/AzielEliab/az-clce/releases/latest";
 
@@ -172,13 +177,79 @@ async function collectStats(env) {
   };
 }
 
+
+function viewsKey() {
+  return PROJECT + "|__views__";
+}
+
+async function incrementViews(env) {
+  const n = parseInt((await env.DOWNLOADS.get(viewsKey())) || "0", 10) + 1;
+  await env.DOWNLOADS.put(viewsKey(), String(n));
+  return n;
+}
+
+function installScript() {
+  return `#!/usr/bin/env bash
+# AZ-CLCE one-click install. Counted download via this Worker.
+set -euo pipefail
+HOST="${HOST}"
+ASSET="${DEFAULT_ASSET}"
+WORKDIR="\${AZ_CLCE_HOME:-\$HOME/az-clce}"
+mkdir -p "\$WORKDIR"
+cd "\$WORKDIR"
+echo "Downloading counted tarball from \${HOST}/download (User-Agent Mozilla/5.0)…"
+curl -fsSL -A 'Mozilla/5.0' "\${HOST}/download?asset=\${ASSET}" -o "\${ASSET}"
+tar -xzf "\${ASSET}"
+DIR="\$(find . -maxdepth 1 -type d -name 'az-clce-*' | head -n 1)"
+if [ -n "\${DIR}" ]; then
+  cd "\${DIR}"
+fi
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -U pip
+python -m pip install -e .
+echo
+echo "Installed AZ-CLCE."
+echo "Run:  clce ui"
+echo "Then open http://127.0.0.1:8845  (loopback only)"
+echo "Author: Aziel Eliab."
+`;
+}
+
+async function serveAsset(request, env, asset, { head = false } = {}) {
+  if (!env.ASSETS) {
+    return json({ error: "assets binding missing" }, 500);
+  }
+  const assetUrl = new URL("/" + asset, request.url);
+  const assetRes = await env.ASSETS.fetch(new Request(assetUrl, { method: "GET" }));
+  if (!assetRes.ok) {
+    return json({ error: "asset not hosted", asset, status: assetRes.status }, 404);
+  }
+  const headers = new Headers();
+  headers.set("Content-Type", "application/gzip");
+  headers.set("Content-Disposition", 'attachment; filename="' + asset.replaceAll('"', "") + '"');
+  headers.set("Cache-Control", "private, no-store");
+  const len = assetRes.headers.get("Content-Length");
+  if (len) headers.set("Content-Length", len);
+  for (const [k, v] of Object.entries(corsHeaders())) headers.set(k, v);
+  if (head) {
+    return new Response(null, { status: 200, headers });
+  }
+  return new Response(assetRes.body, { status: 200, headers });
+}
+
 async function indexHtml(env) {
   const stats = await collectStats(env);
-  const total = Number(stats.total) || 0;
-  const n = total.toLocaleString("en-US");
-  const github = (typeof GITHUB_LATEST !== "undefined" && GITHUB_LATEST)
-    ? GITHUB_LATEST
-    : GITHUB_RELEASES;
+  const downloads = Number(stats.downloads != null ? stats.downloads : stats.total) || 0;
+  const views = parseInt((await env.DOWNLOADS.get(viewsKey())) || "0", 10) || 0;
+  const v = views.toLocaleString("en-US");
+  const n = downloads.toLocaleString("en-US");
+  const breakdown = (stats.breakdown || [])
+    .map(
+      (b) =>
+        `<li><code>${b.owner}/${b.repo}</code> branch <code>${b.branch}</code> fork=${b.fork} → ${b.count}</li>`,
+    )
+    .join("") || "<li>none yet</li>";
   return `<!doctype html>
 <html lang="en">
 <meta charset="utf-8">
@@ -186,32 +257,80 @@ async function indexHtml(env) {
 <title>AZ-CLCE downloads</title>
 <style>
   :root { color-scheme: dark; }
-  body { font: 16px/1.45 system-ui, sans-serif; max-width: 40rem; margin: 3rem auto; padding: 0 1.25rem; background: #0b0b0b; color: #e8e0d0; }
-  h1 { font-size: 1.75rem; margin: 0 0 .35rem; color: #c9a227; }
-  .motto { color: #c9a227; font-style: italic; margin: 0 0 1.5rem; }
-  .card { border: 1px solid #2a261c; border-radius: 12px; padding: 1.25rem 1.35rem; background: #141414; }
-  .count { font-size: 2.4rem; font-variant-numeric: tabular-nums; font-weight: 700; margin: 0; }
-  .count span { font-size: 1rem; font-weight: 500; color: #8a8070; }
-  a.dl { display: inline-block; margin-top: 1rem; background: #c9a227; color: #0b0b0b; text-decoration: none; font-weight: 650; padding: .65rem 1rem; border-radius: 8px; }
-  .meta { margin-top: 1.1rem; color: #8a8070; font-size: .92rem; }
-  .meta a { color: #c9a227; }
+  body { font: 16px/1.45 system-ui, sans-serif; max-width: 42rem; margin: 3rem auto; padding: 0 1.25rem 4rem; background: #0e1014; color: #e8eaef; }
+  h1 { font-size: 1.75rem; margin: 0 0 .35rem; }
+  .motto { color: #9aa3b2; margin: 0 0 1.5rem; }
+  .card { border: 1px solid #2a3140; border-radius: 12px; padding: 1.25rem 1.35rem; background: #151922; }
+  .nums { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin: 0 0 1rem; }
+  .count { font-size: 2.2rem; font-variant-numeric: tabular-nums; font-weight: 700; margin: 0; }
+  .count span { display: block; font-size: .95rem; font-weight: 500; color: #9aa3b2; }
+  .kid { font-size: 1.05rem; margin: 0 0 1rem; }
+  .btns { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin: 0 0 .85rem; }
+  @media (max-width: 520px) { .btns { grid-template-columns: 1fr; } }
+  a.btn, button.btn { display: block; width: 100%; box-sizing: border-box; text-align: center; font: inherit; font-size: 1.2rem; font-weight: 750; padding: 1rem 1.1rem; border-radius: 10px; border: 0; cursor: pointer; text-decoration: none; }
+  a.btn.primary { background: #e8eaef; color: #0e1014; }
+  button.btn.install { background: #c9a227; color: #14110a; }
+  button.btn.install.copied { background: #7dcf9a; color: #0e1014; }
+  .meta { margin-top: 1.1rem; color: #9aa3b2; font-size: .92rem; }
+  .meta a { color: #c9d4ff; }
   .iso { margin-top: .85rem; font-size: .85rem; color: #7d8696; }
-  .limit { margin-top: .85rem; font-size: .85rem; color: #8a8070; }
+  .banner { border: 1px solid #5c4a1a; background: #241c0d; color: #f0d78c; padding: .85rem 1rem; border-radius: 8px; margin: 0 0 1.2rem; font-size: .92rem; }
+  pre { background: #0e1014; padding: .75rem .9rem; overflow: auto; border-radius: 8px; font-size: .82rem; }
+  code { font-size: .88rem; }
 </style>
 <body>
   <h1>AZ-CLCE</h1>
-  <p class="motto">Cross-Layer Consistency Engine. Inconsistency, not intent.</p>
+  <p class="motto">Cross-Layer Consistency Engine. Inconsistency, not intent. Author Aziel Eliab.</p>
+  <p class="banner">CLCE detects inconsistency, not intent. Type D is a label, not a finding of malice. Human validation required. Author: Aziel Eliab.</p>
   <div class="card">
-    <p class="count">${n}<span> downloads of this project</span></p>
-    <a class="dl" href="/download?asset=az-clce-0.2.0.tar.gz">Download az-clce-0.2.0.tar.gz — ${n} counted</a>
-    <p class="meta">The count ticks on this click. Nobody reports anything. Forks using this same link are counted automatically.</p>
-    <p class="iso">Isolated counter: Worker <code>azclce-download-tracker</code>, project <code>azclce</code>. Not mixed with any other product.</p>
-    <p class="limit">CLCE detects inconsistency, not intent. Type D is a label, not a finding of malice. Human validation required. Advisory scores only. Forks welcome and always allowed.</p>
-    <p class="meta"><a href="/ai">AI runtime</a> · <a href="/openapi.json">OpenAPI</a> · <a href="/stats">JSON stats</a> · <a href="${github}">GitHub releases</a></p>
+    <div class="nums">
+      <p class="count">${v}<span>Views</span></p>
+      <p class="count">${n}<span>Downloads</span></p>
+    </div>
+    <p class="kid"><strong>Two big buttons.</strong> Download saves the gzip (the Downloads number goes up). One-click install copies a Terminal command. After it finishes, type <code>clce ui</code>.</p>
+    <div class="btns">
+      <a class="btn primary dl" href="/download?asset=${DEFAULT_ASSET}">Download</a>
+      <button type="button" class="btn install" id="install-btn">One-click install</button>
+    </div>
+    <pre id="install-cmd">curl -fsSL https://azclce-download-tracker.vibelock.workers.dev/install.sh | bash</pre>
+    <p class="kid">Then run: <code>clce ui</code> and open http://127.0.0.1:8845 (this computer only).</p>
+    <p class="meta">The download count ticks on the Download click. The Worker serves the gzip (HTTP 200). No 302 to GitHub. Forks using this same link are counted automatically. ${DEFAULT_ASSET} — ${n} counted.</p>
+    <p class="iso">Isolated counter: Worker <code>azclce-download-tracker</code>, project <code>azclce</code>, KV <code>AZCLCE_DOWNLOADS</code>. Not mixed with any other product. /v1 does not increment downloads.</p>
+    
+    <p class="meta"><a href="/stats">JSON stats</a> · <a href="/openapi.json">OpenAPI</a> · <a href="/v1/skill">Skill</a> · <a href="/ai">AI runtime</a> · <a href="${GITHUB_REPO}">GitHub</a> · <a href="${GITHUB_LATEST}">releases</a></p>
+    <script>
+      (function () {
+        var cmd = "curl -fsSL https://azclce-download-tracker.vibelock.workers.dev/install.sh | bash";
+        var btn = document.getElementById("install-btn");
+        var pre = document.getElementById("install-cmd");
+        if (!btn) return;
+        btn.addEventListener("click", function () {
+          function done(ok) {
+            btn.textContent = ok ? "Copied! Paste in Terminal, then run clce ui" : "Select the command, copy it, then run clce ui";
+            btn.classList.add("copied");
+          }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(cmd).then(function () { done(true); }).catch(function () { done(false); });
+          } else {
+            done(false);
+            if (pre && window.getSelection) {
+              var r = document.createRange();
+              r.selectNodeContents(pre);
+              var sel = window.getSelection();
+              sel.removeAllRanges();
+              sel.addRange(r);
+            }
+          }
+        });
+      })();
+    </script>
+    <h2>Per repo / branch / fork</h2>
+    <ul>${breakdown}</ul>
   </div>
 </body>
 </html>`;
 }
+
 
 
 function html(body) {
@@ -250,6 +369,7 @@ function openapiSpec(request) {
     servers: [{ url: origin }],
     paths: {
       "/v1/health": { get: { operationId: "azclce_health", summary: "Liveness. Does not increment download KV.", responses: { "200": { description: "ok" } } } },
+      "/v1/skill": { get: { operationId: "azclce_skill", summary: "Return AZ-CLCE skill markdown. Does not increment downloads or views.", responses: { "200": { description: "text/markdown skill body" } } } },
       "/v1/score": {
         post: {
           operationId: "azclce_score",
@@ -334,6 +454,19 @@ async function handleRuntime(request, url) {
       version: "0.2.0",
     });
   }
+
+  if (path === "/v1/skill" && request.method === "GET") {
+    return new Response(SKILL_MARKDOWN, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/markdown; charset=utf-8",
+        "Cache-Control": "private, no-store",
+        "X-KV-Increment": "false",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  }
+
   if (path === "/openapi.json" && request.method === "GET") {
     return json(openapiSpec(request));
   }
@@ -386,7 +519,19 @@ export default {
     const runtime = await handleRuntime(request, url);
     if (runtime) return runtime;
 
+    if ((url.pathname === "/install.sh" || url.pathname === "/install.sh/") && request.method === "GET") {
+      return new Response(installScript(), {
+        status: 200,
+        headers: {
+          "Content-Type": "text/x-shellscript; charset=utf-8",
+          "Cache-Control": "private, no-store",
+          ...corsHeaders(),
+        },
+      });
+    }
+
     if (url.pathname === "/" && request.method === "GET") {
+      await incrementViews(env);
       return new Response(await indexHtml(env), {
         headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders() },
       });
@@ -422,35 +567,23 @@ export default {
       });
     }
 
-    if (url.pathname === "/go" && request.method === "GET") {
+    if (url.pathname === "/go" && (request.method === "GET" || request.method === "HEAD")) {
       const dims = parseDims(url.searchParams);
-      await increment(env, dims);
       const asset = dims.asset || DEFAULT_ASSET;
-      return redirect(githubAssetUrl(dims.owner, dims.repo, dims.tag, asset));
+      dims.asset = asset;
+      if (request.method === "GET") await increment(env, dims);
+      return serveAsset(request, env, asset, { head: request.method === "HEAD" });
     }
 
-    if ((url.pathname === "/download" || url.pathname.startsWith("/download/")) && request.method === "GET") {
+    if ((url.pathname === "/download" || url.pathname.startsWith("/download/")) && (request.method === "GET" || request.method === "HEAD")) {
       const dims = parseDims(url.searchParams);
       if (!dims.asset && url.pathname.startsWith("/download/")) {
         dims.asset = decodeURIComponent(url.pathname.slice("/download/".length));
       }
       const asset = dims.asset || DEFAULT_ASSET;
       dims.asset = asset;
-      await increment(env, dims);
-      if (!env.ASSETS) {
-        return json({ error: "assets binding missing" }, 500);
-      }
-      const assetUrl = new URL("/" + asset, request.url);
-      const assetRes = await env.ASSETS.fetch(new Request(assetUrl, { method: "GET" }));
-      if (!assetRes.ok) {
-        return json({ error: "asset not hosted", asset, status: assetRes.status }, 404);
-      }
-      const headers = new Headers();
-      headers.set("Content-Type", "application/gzip");
-      headers.set("Content-Disposition", 'attachment; filename="' + asset.replaceAll('"', "") + '"');
-      headers.set("Cache-Control", "private, no-store");
-      for (const [k, v] of Object.entries(corsHeaders())) headers.set(k, v);
-      return new Response(assetRes.body, { status: 200, headers });
+      if (request.method === "GET") await increment(env, dims);
+      return serveAsset(request, env, asset, { head: request.method === "HEAD" });
     }
 
     return json({ error: "not found" }, 404);

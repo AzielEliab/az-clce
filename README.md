@@ -18,6 +18,40 @@ How to contribute: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 **Forks are welcome and always allowed.**
 
+
+## One-click install
+
+```bash
+curl -fsSL https://azclce-download-tracker.vibelock.workers.dev/install.sh | bash
+```
+
+The script curls the **counted** tarball from this project's Worker
+(`/download`, User-Agent `Mozilla/5.0`), extracts, makes a venv, and
+`pip install -e .`. Then run `clce ui`.
+
+Or tap **Download** / **One-click install** on the Worker homepage
+(a 6th-grader can tap it):
+https://azclce-download-tracker.vibelock.workers.dev/
+
+## Counted download (Cloudflare Worker)
+
+**This is the counted download.** GitHub releases exist as a mirror.
+The Worker serves the gzip itself (HTTP 200, no 302 to GitHub).
+
+# → [https://azclce-download-tracker.vibelock.workers.dev/](https://azclce-download-tracker.vibelock.workers.dev/) ←
+
+Direct tarball (also counted):
+[az-clce-0.2.0.tar.gz](https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.2.0.tar.gz)
+
+- Live count JSON: [https://azclce-download-tracker.vibelock.workers.dev/stats](https://azclce-download-tracker.vibelock.workers.dev/stats)
+- OpenAPI: [https://azclce-download-tracker.vibelock.workers.dev/openapi.json](https://azclce-download-tracker.vibelock.workers.dev/openapi.json)
+- Skill: [https://azclce-download-tracker.vibelock.workers.dev/v1/skill](https://azclce-download-tracker.vibelock.workers.dev/v1/skill)
+- One-click install: [https://azclce-download-tracker.vibelock.workers.dev/install.sh](https://azclce-download-tracker.vibelock.workers.dev/install.sh)
+- GitHub: [https://github.com/AzielEliab/az-clce](https://github.com/AzielEliab/az-clce)
+
+Isolated counter: Worker `azclce-download-tracker`, KV `AZCLCE_DOWNLOADS`. Not mixed with any other product. `/v1` does not increment downloads.
+
+
 ## Quick start
 
 1. Install

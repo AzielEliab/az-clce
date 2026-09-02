@@ -5,13 +5,11 @@ description: Use when calling AZ-CLCE hosted /v1 or installing the local package
 
 # AZ-CLCE
 
-CLCE detects inconsistency, not intent. Type D is a label, not a finding of malice. Human validation required. Author: Aziel Eliab.
+CLCE detects inconsistency, not intent. Type D is a label, not a finding of malice. Author: **Aziel Eliab**.
 
 **THIS IS:** a Cross-Layer Consistency Engine that scores inconsistency across representation (R), description (D), and reality (P).
 
-**THIS IS NOT:** a finding of malice, a cybersecurity exploit, a scanner of other people's systems, or a truth verdict. Type D is a label only.
-
-Author: **Aziel Eliab**. Forks are welcome and always allowed. Apache-2.0.
+**THIS IS NOT:** a finding of malice, a cybersecurity exploit, a scanner of other people's systems, or a truth verdict. Hosted `/v1` does not increment downloads or views.
 
 Always send `User-Agent: Mozilla/5.0`. Cloudflare Workers may 403 an empty agent.
 
@@ -24,13 +22,9 @@ Always send `User-Agent: Mozilla/5.0`. Cloudflare Workers may 403 an empty agent
 
 Ops (do **not** increment downloads or views):
 
-| Method | Path | What |
-|--------|------|------|
-| GET | `/v1/health` | Liveness. Does not increment downloads. |
-| GET | `/v1/skill` | This markdown. Does not increment downloads. |
-| POST | `/v1/score` | Jaccard triple, pairwise average, CLCE+. Advisory. |
-| POST | `/v1/classify` | Same as score plus mismatch types. Type D is a label only. |
-| POST | `/v1/gate` | Pass iff triple >= min_score. Advisory, not a truth verdict. |
+- `GET /v1/health` — liveness
+- `GET /v1/skill` — this file
+- Product POSTs listed in OpenAPI
 
 Grok: import OpenAPI as a custom tool. ChatGPT: GPT Actions. Venice: HTTP tools.
 
@@ -39,9 +33,6 @@ Grok: import OpenAPI as a custom tool. ChatGPT: GPT Actions. Venice: HTTP tools.
 ```bash
 curl -s -A 'Mozilla/5.0' https://azclce-download-tracker.vibelock.workers.dev/v1/health
 curl -s -A 'Mozilla/5.0' https://azclce-download-tracker.vibelock.workers.dev/v1/skill
-curl -s -A 'Mozilla/5.0' -X POST https://azclce-download-tracker.vibelock.workers.dev/v1/score \
-  -H 'content-type: application/json' \
-  -d '{"r":"login button blue","d":"login form submits","p":"login button submits"}'
 ```
 
 ## Local (after one-click install)
@@ -49,6 +40,7 @@ curl -s -A 'Mozilla/5.0' -X POST https://azclce-download-tracker.vibelock.worker
 ```bash
 curl -fsSL https://azclce-download-tracker.vibelock.workers.dev/install.sh | bash
 clce ui
+clce doctor
 ```
 
 Then open http://127.0.0.1:8845 (loopback only).

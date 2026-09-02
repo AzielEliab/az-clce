@@ -3,9 +3,9 @@
 # Usage: curl -fsSL https://azclce-download-tracker.vibelock.workers.dev/install.sh | bash
 set -euo pipefail
 
-HOST="${AZ_CLCE_HOME_HOST:-https://azclce-download-tracker.vibelock.workers.dev}"
-ASSET="${AZ_CLCE_HOME_ASSET:-az-clce-0.2.0.tar.gz}"
-WORKDIR="${AZ_CLCE_HOME:-$HOME/az-clce}"
+HOST="${CLCE_HOME_HOST:-https://azclce-download-tracker.vibelock.workers.dev}"
+ASSET="${CLCE_HOME_ASSET:-az-clce-0.2.0.tar.gz}"
+WORKDIR="${CLCE_HOME:-$HOME/az-clce}"
 
 mkdir -p "$WORKDIR"
 cd "$WORKDIR"

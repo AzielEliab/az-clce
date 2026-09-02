@@ -246,6 +246,15 @@ finding of malice. Threshold 0.7 is advisory.
 One-URL catalog: https://aziel-runtime.vibelock.workers.dev/openapi.json
 
 
+## Use with Grok / ChatGPT / Venice
+
+Catalog OpenAPI: https://aziel-runtime.vibelock.workers.dev/openapi.json
+Catalog MCP: `POST https://aziel-runtime.vibelock.workers.dev/mcp`
+This Worker skill: https://azclce-download-tracker.vibelock.workers.dev/v1/skill
+This Worker OpenAPI: https://azclce-download-tracker.vibelock.workers.dev/openapi.json
+
+Grok: import the catalog or Worker OpenAPI as a custom tool. ChatGPT: GPT Actions (no auth). Venice: HTTP tools. Always send `User-Agent: Mozilla/5.0`.
+
 ## Cite this
 
 Aziel Eliab. AZ-CLCE. https://github.com/AzielEliab/az-clce. https://azclce-download-tracker.vibelock.workers.dev.

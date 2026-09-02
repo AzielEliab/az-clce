@@ -47,3 +47,18 @@ Then open http://127.0.0.1:8845 (loopback only).
 
 Counted download (gzip HTTP 200, no 302): https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.2.0.tar.gz
 GitHub: https://github.com/AzielEliab/az-clce
+
+## Catalog + local UI
+
+Author: **Aziel Eliab**. Honest scope: Jaccard triple / pairwise / CLCE+. Detects inconsistency, not intent.
+
+- Catalog product: https://aziel-runtime.vibelock.workers.dev/p/azclce/
+- Catalog OpenAPI: https://aziel-runtime.vibelock.workers.dev/openapi.json
+- Catalog MCP: `POST https://aziel-runtime.vibelock.workers.dev/mcp`
+- This Worker skill: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/skill`
+- This Worker OpenAPI: https://azclce-download-tracker.vibelock.workers.dev/openapi.json
+- Sample payload: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/example`
+
+Local UI: **Import JSON file** (`type=file`) and **Export JSON**. Then `clce doctor`.
+
+Grok: import catalog or Worker OpenAPI as a custom tool. ChatGPT: GPT Actions. Venice: HTTP tools.

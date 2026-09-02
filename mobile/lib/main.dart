@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'theme.dart';
 
@@ -17,6 +20,23 @@ const String limitation =
 const double kThreshold = 0.7;
 const double kVeryLow = 0.3;
 const double kHighN = 0.5;
+
+const Map<String, String> kidPlainBand = {
+  'perfect':
+      'These three stories match. What it looks like, what they wrote, and what it actually does use the same words.',
+  'acceptable':
+      'These stories are close enough. A grown-up should still check, because close is not the same as perfect.',
+  'structural inconsistency':
+      'These stories do not match. The picture, the writing, and the real thing are talking about different stuff.',
+};
+
+const Map<String, String> kidPlainTypes = {
+  'A': 'The picture and the writing do not match, but the real thing is closer to one of them.',
+  'B': 'The picture and the writing match, but the real thing is different.',
+  'C': 'Important pieces are missing, or none of the three stories really agree.',
+  'D':
+      'LABEL ONLY. The picture matches the writing, but the real thing is very different and lots of pieces are missing. This does not mean anyone was trying to trick you. CLCE finds mismatches, not motives.',
+};
 
 Set<String> tokenize(String text) {
   final lower = text.toLowerCase();
@@ -67,6 +87,7 @@ class Report {
     required this.band,
     required this.types,
     required this.primary,
+    required this.kidPlain,
   });
 
   final double triple;
@@ -78,6 +99,7 @@ class Report {
   final String band;
   final List<String> types;
   final String? primary;
+  final String kidPlain;
 }
 
 const typeLabels = {
@@ -124,6 +146,18 @@ Report scoreLayers(String r, String d, String p, String n) {
   } else {
     band = 'structural inconsistency';
   }
+  final parts = <String>[
+    kidPlainBand[band] ?? kidPlainBand['structural inconsistency']!,
+  ];
+  if (types.isEmpty) {
+    parts.add('No mismatch type matched. A grown-up should still check.');
+  } else {
+    for (final code in types) {
+      final note = kidPlainTypes[code];
+      if (note != null) parts.add('Type $code: $note');
+    }
+  }
+  parts.add('CLCE detects inconsistency, not intent. Type D is a label only.');
   return Report(
     triple: triple,
     rd: rd,
@@ -134,7 +168,68 @@ Report scoreLayers(String r, String d, String p, String n) {
     band: band,
     types: types,
     primary: types.isEmpty ? null : types.first,
+    kidPlain: parts.join(' '),
   );
+}
+
+Map<String, String> parseLayersText(String raw) {
+  final blob = raw.trim();
+  if (blob.isEmpty) {
+    return {'r': '', 'd': '', 'p': '', 'n': ''};
+  }
+  if (blob.startsWith('{')) {
+    final obj = jsonDecode(blob);
+    if (obj is Map) {
+      String pick(List<String> keys) {
+        for (final k in keys) {
+          if (obj[k] != null) return obj[k].toString();
+        }
+        return '';
+      }
+
+      return {
+        'r': pick(['r', 'R', 'representation']),
+        'd': pick(['d', 'D', 'description']),
+        'p': pick(['p', 'P', 'reality']),
+        'n': pick(['n', 'N', 'negative', 'missing']),
+      };
+    }
+  }
+  final buckets = {'r': <String>[], 'd': <String>[], 'p': <String>[], 'n': <String>[]};
+  String? current;
+  final aliases = {
+    'r': 'r',
+    'representation': 'r',
+    'what it looks like': 'r',
+    'what it looks like (r)': 'r',
+    'd': 'd',
+    'description': 'd',
+    'what they wrote': 'd',
+    'what they wrote (d)': 'd',
+    'p': 'p',
+    'reality': 'p',
+    'what it actually does': 'p',
+    'what it actually does (p)': 'p',
+    'n': 'n',
+    'missing pieces': 'n',
+    'missing pieces (n)': 'n',
+  };
+  for (final line in blob.split('\n')) {
+    final idx = line.indexOf(':');
+    if (idx > 0 && idx < 80) {
+      final header = line.substring(0, idx).trim().toLowerCase();
+      final rest = line.substring(idx + 1).trim();
+      if (aliases.containsKey(header)) {
+        current = aliases[header];
+        if (rest.isNotEmpty) buckets[current]!.add(rest);
+        continue;
+      }
+    }
+    if (current != null) buckets[current]!.add(line.trimRight());
+  }
+  return {
+    for (final k in buckets.keys) k: buckets[k]!.join('\n').trim(),
+  };
 }
 
 class AzClceApp extends StatelessWidget {
@@ -164,6 +259,14 @@ class _FormPageState extends State<FormPage> {
   final _p = TextEditingController();
   final _n = TextEditingController();
   Report? _report;
+  bool _advanced = false;
+
+  static const _sample = {
+    'r': 'a blue login button that says submit',
+    'd': 'the login form submits your name and password',
+    'p': 'the login button submits your name and password',
+    'n': 'forgot password link',
+  };
 
   @override
   void dispose() {
@@ -180,11 +283,122 @@ class _FormPageState extends State<FormPage> {
     });
   }
 
+  void _fillSample() {
+    _r.text = _sample['r']!;
+    _d.text = _sample['d']!;
+    _p.text = _sample['p']!;
+    _n.text = _sample['n']!;
+    _run();
+  }
+
+  Future<void> _importText() async {
+    final controller = TextEditingController();
+    final text = await showDialog<String>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Import JSON or txt'),
+          content: TextField(
+            controller: controller,
+            maxLines: 8,
+            decoration: const InputDecoration(
+              hintText: '{"r":"...","d":"...","p":"...","n":"..."}',
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, controller.text),
+              child: const Text('Import'),
+            ),
+          ],
+        );
+      },
+    );
+    controller.dispose();
+    if (text == null) return;
+    try {
+      final layers = parseLayersText(text);
+      _r.text = layers['r'] ?? '';
+      _d.text = layers['d'] ?? '';
+      _p.text = layers['p'] ?? '';
+      _n.text = layers['n'] ?? '';
+      _run();
+    } catch (err) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Import failed: $err')),
+      );
+    }
+  }
+
+  Future<void> _exportText() async {
+    final report = _report ?? scoreLayers(_r.text, _d.text, _p.text, _n.text);
+    final jsonOut = const JsonEncoder.withIndent('  ').convert({
+      'r': _r.text,
+      'd': _d.text,
+      'p': _p.text,
+      'n': _n.text,
+      'triple': report.triple,
+      'band': report.band,
+      'kid_plain': report.kidPlain,
+      'types': report.types,
+    });
+    final receipt = StringBuffer()
+      ..writeln('AZ-CLCE receipt')
+      ..writeln('===============')
+      ..writeln('version: 0.2.0')
+      ..writeln()
+      ..writeln(limitation)
+      ..writeln()
+      ..writeln('What it looks like (R):')
+      ..writeln('  ${_r.text.isEmpty ? "(empty)" : _r.text}')
+      ..writeln()
+      ..writeln('What they wrote (D):')
+      ..writeln('  ${_d.text.isEmpty ? "(empty)" : _d.text}')
+      ..writeln()
+      ..writeln('What it actually does (P):')
+      ..writeln('  ${_p.text.isEmpty ? "(empty)" : _p.text}')
+      ..writeln()
+      ..writeln('Missing pieces (N):')
+      ..writeln('  ${_n.text.isEmpty ? "(empty)" : _n.text}')
+      ..writeln()
+      ..writeln('Score: ${report.triple.toStringAsFixed(4)}')
+      ..writeln('Band: ${report.band}')
+      ..writeln('Kid-plain:')
+      ..writeln('  ${report.kidPlain}')
+      ..writeln()
+      ..writeln('Hash the JSON {r,d,p,n} with desktop `clce` for input_sha256.');
+    final blob = '$jsonOut\n\n---\n\n$receipt';
+    await Clipboard.setData(ClipboardData(text: blob));
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Exported to clipboard'),
+          content: SingleChildScrollView(child: SelectableText(blob)),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final report = _report;
     return Scaffold(
-      appBar: AppBar(title: const Text('AZ-CLCE')),
+      appBar: AppBar(
+        title: const Text('AZ-CLCE'),
+        actions: [
+          TextButton(
+            onPressed: () => setState(() => _advanced = !_advanced),
+            child: Text(_advanced ? 'Simple' : 'Advanced'),
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -202,7 +416,7 @@ class _FormPageState extends State<FormPage> {
             controller: _r,
             maxLines: 3,
             decoration: const InputDecoration(
-              labelText: 'R — Representation',
+              labelText: 'What it looks like (R)',
             ),
           ),
           const SizedBox(height: 12),
@@ -210,7 +424,7 @@ class _FormPageState extends State<FormPage> {
             controller: _d,
             maxLines: 3,
             decoration: const InputDecoration(
-              labelText: 'D — Description',
+              labelText: 'What they wrote (D)',
             ),
           ),
           const SizedBox(height: 12),
@@ -218,7 +432,7 @@ class _FormPageState extends State<FormPage> {
             controller: _p,
             maxLines: 3,
             decoration: const InputDecoration(
-              labelText: 'P — Reality',
+              labelText: 'What it actually does (P)',
             ),
           ),
           const SizedBox(height: 12),
@@ -226,47 +440,70 @@ class _FormPageState extends State<FormPage> {
             controller: _n,
             maxLines: 2,
             decoration: const InputDecoration(
-              labelText: 'N — Missing expected (optional)',
+              labelText: 'Missing pieces (N)',
             ),
           ),
           const SizedBox(height: 16),
-          FilledButton(onPressed: _run, child: const Text('Score / Classify')),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              FilledButton(onPressed: _run, child: const Text('Score')),
+              OutlinedButton(onPressed: _fillSample, child: const Text('Fill sample')),
+              OutlinedButton(onPressed: _importText, child: const Text('Import')),
+              OutlinedButton(onPressed: _exportText, child: const Text('Export')),
+            ],
+          ),
           if (report != null) ...[
             const SizedBox(height: 16),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('triple  ${report.triple.toStringAsFixed(4)}'),
-                    Text('R↔D     ${report.rd.toStringAsFixed(4)}'),
-                    Text('D↔P     ${report.dp.toStringAsFixed(4)}'),
-                    Text('R↔P     ${report.rp.toStringAsFixed(4)}'),
-                    Text('avg     ${report.avg.toStringAsFixed(4)}'),
-                    Text('CLCE+   ${report.plus.toStringAsFixed(4)}'),
-                    const SizedBox(height: 8),
-                    Text('band: ${report.band}',
-                        style: const TextStyle(color: kGold)),
-                    const SizedBox(height: 8),
-                    if (report.types.isEmpty)
-                      const Text('No mismatch type matched.')
-                    else
-                      ...report.types.map((code) {
-                        final primary = code == report.primary ? ' (primary)' : '';
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Text(
-                            'Type $code ${typeLabels[code]}$primary\n${typeNotes[code]}',
-                          ),
-                        );
-                      }),
-                    const SizedBox(height: 8),
-                    const Text(limitation, style: TextStyle(fontSize: 12)),
-                  ],
-                ),
+            Text(
+              '${(report.triple * 100).round()}',
+              style: const TextStyle(
+                fontSize: 64,
+                fontWeight: FontWeight.w700,
+                color: kGold,
+                height: 1,
               ),
             ),
+            const SizedBox(height: 8),
+            Text(report.kidPlain),
+            if (_advanced) ...[
+              const SizedBox(height: 16),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('triple  ${report.triple.toStringAsFixed(4)}'),
+                      Text('R↔D     ${report.rd.toStringAsFixed(4)}'),
+                      Text('D↔P     ${report.dp.toStringAsFixed(4)}'),
+                      Text('R↔P     ${report.rp.toStringAsFixed(4)}'),
+                      Text('avg     ${report.avg.toStringAsFixed(4)}'),
+                      Text('CLCE+   ${report.plus.toStringAsFixed(4)}'),
+                      const SizedBox(height: 8),
+                      Text('band: ${report.band}',
+                          style: const TextStyle(color: kGold)),
+                      const SizedBox(height: 8),
+                      if (report.types.isEmpty)
+                        const Text('No mismatch type matched.')
+                      else
+                        ...report.types.map((code) {
+                          final primary = code == report.primary ? ' (primary)' : '';
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              'Type $code ${typeLabels[code]}$primary\n${typeNotes[code]}',
+                            ),
+                          );
+                        }),
+                      const SizedBox(height: 8),
+                      const Text(limitation, style: TextStyle(fontSize: 12)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
         ],
       ),

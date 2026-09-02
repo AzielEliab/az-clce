@@ -1,8 +1,10 @@
 """Command-line interface for AZ-CLCE.
 
     clce version
+    clce doctor
     clce ui
     clce score --r "..." --d "..." --p "..." [--n "..."]
+    clce score --import layers.json --export report.json
     clce classify --r ... --d ... --p ... [--n ...]
     clce gate --min 0.7 --r ... --d ... --p ...
 
@@ -18,7 +20,8 @@ import sys
 from typing import Sequence
 
 from clce import __version__
-from clce.engine import THRESHOLD, TYPE_LABELS, classify, gate, score
+from clce.engine import THRESHOLD, TYPE_LABELS, classify, debug, gate, score
+from clce.io import LayerImportError, load_layers, write_export
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -35,6 +38,13 @@ def _build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("version", help="Print package version.")
+    p_doc = sub.add_parser("doctor", help="Self-check: engine, loopback, import/export, limits.")
+    p_doc.add_argument(
+        "--json",
+        action="store_true",
+        dest="as_json",
+        help="Print doctor results as JSON.",
+    )
     p_ui = sub.add_parser(
         "ui",
         help="Serve the local CLCE UI on 127.0.0.1:8845 (loopback only).",
@@ -43,10 +53,24 @@ def _build_parser() -> argparse.ArgumentParser:
     p_ui.add_argument("--port", type=int, default=8845, help="Port (default 8845).")
 
     def _layers(p: argparse.ArgumentParser) -> None:
-        p.add_argument("--r", dest="r", default="", help="Representation layer (visuals, diagrams, UI).")
-        p.add_argument("--d", dest="d", default="", help="Description layer (text, instructions, claims).")
-        p.add_argument("--p", dest="p", default="", help="Reality layer (physical or functional truth).")
-        p.add_argument("--n", dest="n", default="", help="Optional missing expected tokens (negative space).")
+        p.add_argument("--r", dest="r", default="", help="What it looks like (representation).")
+        p.add_argument("--d", dest="d", default="", help="What they wrote (description).")
+        p.add_argument("--p", dest="p", default="", help="What it actually does (reality).")
+        p.add_argument("--n", dest="n", default="", help="Missing pieces (optional negative space).")
+        p.add_argument(
+            "--import",
+            dest="import_path",
+            default=None,
+            metavar="FILE",
+            help="Load layers from JSON or labeled .txt {r,d,p,n}.",
+        )
+        p.add_argument(
+            "--export",
+            dest="export_path",
+            default=None,
+            metavar="FILE",
+            help="Write report JSON plus a human .txt receipt (sha256 of inputs).",
+        )
         p.add_argument(
             "--json",
             action="store_true",
@@ -82,6 +106,26 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _layers_from_args(args) -> dict[str, str]:
+    layers = {"r": args.r, "d": args.d, "p": args.p, "n": args.n}
+    if getattr(args, "import_path", None):
+        loaded = load_layers(args.import_path)
+        for key in ("r", "d", "p", "n"):
+            flag = getattr(args, key, "")
+            layers[key] = flag if flag else loaded[key]
+        debug(f"loaded --import {args.import_path}")
+    return layers
+
+
+def _maybe_export(args, report) -> None:
+    path = getattr(args, "export_path", None)
+    if not path:
+        return
+    json_path, txt_path = write_export(path, report)
+    print(f"export_json: {json_path}", file=sys.stderr)
+    print(f"export_txt: {txt_path}", file=sys.stderr)
+
+
 def _print_report(report, as_json: bool, *, with_types: bool) -> None:
     if as_json:
         print(json.dumps(report.to_dict(), indent=2, ensure_ascii=False))
@@ -93,6 +137,8 @@ def _print_report(report, as_json: bool, *, with_types: bool) -> None:
     print(f"pairwise_avg: {report.pairwise_avg:.4f}")
     print(f"plus: {report.plus:.4f}")
     print(f"band: {report.band}")
+    print(f"kid_plain: {report.kid_plain}")
+    print(f"input_sha256: {report.input_sha256}")
     if with_types:
         if report.types:
             labels = ", ".join(f"{c} {TYPE_LABELS[c]}" for c in report.types)
@@ -112,6 +158,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"clce {__version__}")
         return 0
 
+    if args.cmd == "doctor":
+        from clce.doctor import doctor_payload, format_doctor, run_doctor
+
+        results, passed = run_doctor()
+        if args.as_json:
+            print(json.dumps(doctor_payload(results, passed), indent=2, ensure_ascii=False))
+        else:
+            sys.stdout.write(format_doctor(results, passed))
+        return 0 if passed else 1
+
     if args.cmd == "ui":
         from clce.ui import serve
 
@@ -122,22 +178,30 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 2
         return 0
 
+    try:
+        layers = _layers_from_args(args)
+    except (LayerImportError, OSError, ValueError) as exc:
+        print(f"import error: {exc}", file=sys.stderr)
+        return 2
+
     if args.cmd == "score":
-        report = score(r=args.r, d=args.d, p=args.p, n=args.n)
+        report = score(**layers)
         _print_report(report, args.as_json, with_types=False)
+        _maybe_export(args, report)
         return 0
 
     if args.cmd == "classify":
-        report = classify(r=args.r, d=args.d, p=args.p, n=args.n)
+        report = classify(**layers)
         _print_report(report, args.as_json, with_types=True)
+        _maybe_export(args, report)
         return 0
 
     if args.cmd == "gate":
         passed, report = gate(
-            r=args.r,
-            d=args.d,
-            p=args.p,
-            n=args.n,
+            r=layers["r"],
+            d=layers["d"],
+            p=layers["p"],
+            n=layers["n"],
             min_score=args.min_score,
         )
         payload = report.to_dict()
@@ -148,6 +212,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             _print_report(report, False, with_types=True)
             print(f"gate_min: {args.min_score}")
             print(f"gate: {'PASS' if passed else 'FAIL'}")
+        _maybe_export(args, report)
         return 0 if passed else 1
 
     parser.error(f"unknown command {args.cmd}")

@@ -16,7 +16,7 @@ import * as engine from "./engine.js";
  */
 
 const PROJECT = "azclce";
-const DEFAULT_ASSET = "az-clce-0.1.0.tar.gz";
+const DEFAULT_ASSET = "az-clce-0.2.0.tar.gz";
 const DEFAULT_OWNER = "AzielEliab";
 const DEFAULT_REPO = "az-clce";
 const DEFAULT_BRANCH = "main";
@@ -203,7 +203,7 @@ async function indexHtml(env) {
   <p class="motto">Cross-Layer Consistency Engine. Inconsistency, not intent.</p>
   <div class="card">
     <p class="count">${n}<span> downloads of this project</span></p>
-    <a class="dl" href="/download?asset=az-clce-0.1.0.tar.gz">Download az-clce-0.1.0.tar.gz — ${n} counted</a>
+    <a class="dl" href="/download?asset=az-clce-0.2.0.tar.gz">Download az-clce-0.2.0.tar.gz — ${n} counted</a>
     <p class="meta">The count ticks on this click. Nobody reports anything. Forks using this same link are counted automatically.</p>
     <p class="iso">Isolated counter: Worker <code>azclce-download-tracker</code>, project <code>azclce</code>. Not mixed with any other product.</p>
     <p class="limit">CLCE detects inconsistency, not intent. Type D is a label, not a finding of malice. Human validation required. Advisory scores only. Forks welcome and always allowed.</p>
@@ -243,7 +243,7 @@ function openapiSpec(request) {
     openapi: "3.1.0",
     info: {
       title: "AZ-CLCE runtime",
-      version: "0.1.0",
+      version: "0.2.0",
       summary: "Cross-Layer Consistency Engine. Inconsistency, not intent.",
       description: engine.LIMITATION,
     },
@@ -308,6 +308,13 @@ curl -X POST ${origin}/v1/gate -H 'content-type: application/json' \\
 </body></html>`;
 }
 
+
+async function inputSha256(r, d, p, n) {
+  const canonical = JSON.stringify({ d, n, p, r });
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 function layersFrom(body) {
   const { r, d, p, n } = engine.parseLayers(body || {});
   return { r, d, p, n };
@@ -324,6 +331,7 @@ async function handleRuntime(request, url) {
       limitation: engine.LIMITATION,
       threshold: engine.THRESHOLD,
       advisory: true,
+      version: "0.2.0",
     });
   }
   if (path === "/openapi.json" && request.method === "GET") {
@@ -337,12 +345,29 @@ async function handleRuntime(request, url) {
     try { body = await request.json(); } catch {
       return json({ error: "JSON body required", limitation: engine.LIMITATION }, 400);
     }
-    const { r, d, p, n } = layersFrom(body);
+    let r, d, p, n;
+    try {
+      ({ r, d, p, n } = layersFrom(body));
+    } catch (err) {
+      const status = err && err.code === "SIZE_LIMIT" ? 413 : 400;
+      return json({ error: String(err && err.message ? err.message : err), limitation: engine.LIMITATION }, status);
+    }
+    const digest = await inputSha256(
+      Array.isArray(r) ? r.join(" ") : r == null ? "" : String(r),
+      Array.isArray(d) ? d.join(" ") : d == null ? "" : String(d),
+      Array.isArray(p) ? p.join(" ") : p == null ? "" : String(p),
+      Array.isArray(n) ? n.join(" ") : n == null ? "" : String(n),
+    );
     if (path === "/v1/gate") {
       const min = body.min_score != null ? body.min_score : body.min;
-      return json(engine.gate(r, d, p, n, min));
+      const out = engine.gate(r, d, p, n, min);
+      if (out && out.report) out.report.input_sha256 = digest;
+      out.input_sha256 = digest;
+      return json(out);
     }
-    return json(engine.score(r, d, p, n));
+    const report = engine.score(r, d, p, n);
+    report.input_sha256 = digest;
+    return json(report);
   }
   if (path.startsWith("/v1/") || path === "/v1") {
     return json({ error: "not found", hint: "POST /v1/score /v1/classify /v1/gate", limitation: engine.LIMITATION }, 404);

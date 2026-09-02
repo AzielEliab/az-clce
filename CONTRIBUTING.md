@@ -25,6 +25,7 @@ Python 3.10+. Core is stdlib only (`dataclasses`, `json`, `http.server`,
    the paper's acceptable line, not a pass/fail of truth.
 3. **Keep the dependency list tiny.** Stdlib only in the core.
 4. **UI binds loopback only** (`127.0.0.1:8845`). Do not listen on `0.0.0.0`.
+   Size limits on fields. No telemetry. Empty fields are OK. `CLCE_DEBUG=1` for traces.
 5. **Do not merge this product into ForgeReceipts, ZionPattern Solver,
    DecisionGATE, AZ-OS, Glossa Filter, or any *Lock tree.** AZ-CLCE is
    standalone.
@@ -36,7 +37,8 @@ Python 3.10+. Core is stdlib only (`dataclasses`, `json`, `http.server`,
 ## Where to change things
 
 - Token sets / Jaccard / CLCE+ / types: `clce/engine.py`
-- CLI: `clce/cli.py`
+- CLI: `clce/cli.py` (`clce doctor`, `score --import/--export`)
+- Import/export: `clce/io.py`
 - Local UI: `clce/ui.py`, `clce/web/`
 - Spec: `docs/whitepaper.md`
 - Source papers: `docs/source/`

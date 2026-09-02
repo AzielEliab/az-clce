@@ -23,6 +23,46 @@ export const TYPE_NOTES = {
   D: "LABEL ONLY. High N and D↔P very low and R↔D high: representation matches description while reality and missing-elements diverge. CLCE detects inconsistency, not intent. This is not a finding of malice.",
 };
 
+
+export const MAX_FIELD_CHARS = 64 * 1024;
+export const ENGINE_VERSION = "0.2.0";
+
+export const KID_PLAIN_BAND = {
+  perfect: "These three stories match. What it looks like, what they wrote, and what it actually does use the same words.",
+  acceptable: "These stories are close enough. A grown-up should still check, because close is not the same as perfect.",
+  structural_inconsistency: "These stories do not match. The picture, the writing, and the real thing are talking about different stuff.",
+};
+
+export const KID_PLAIN_TYPES = {
+  A: "The picture and the writing do not match, but the real thing is closer to one of them.",
+  B: "The picture and the writing match, but the real thing is different.",
+  C: "Important pieces are missing, or none of the three stories really agree.",
+  D: "LABEL ONLY. The picture matches the writing, but the real thing is very different and lots of pieces are missing. This does not mean anyone was trying to trick you. CLCE finds mismatches, not motives.",
+};
+
+function checkField(name, value) {
+  const text = value == null ? "" : String(value);
+  if (text.length > MAX_FIELD_CHARS) {
+    const err = new Error(name + " exceeds size limit (" + text.length + " > " + MAX_FIELD_CHARS + " characters)");
+    err.code = "SIZE_LIMIT";
+    throw err;
+  }
+  return text;
+}
+
+function kidPlainText(bandName, types) {
+  const parts = [KID_PLAIN_BAND[bandName] || KID_PLAIN_BAND.structural_inconsistency];
+  if (types && types.length) {
+    for (const code of types) {
+      if (KID_PLAIN_TYPES[code]) parts.push("Type " + code + ": " + KID_PLAIN_TYPES[code]);
+    }
+  } else {
+    parts.push("No mismatch type matched. A grown-up should still check.");
+  }
+  parts.push("CLCE detects inconsistency, not intent. Type D is a label only.");
+  return parts.join(" ");
+}
+
 export const LIMITATION =
   "CLCE detects inconsistency, not intent. Type D is a label, not a finding of malice. Human validation required. Not a cybersecurity exploit, not a scanner of other people's systems, not a lie detector. Advisory scores only. Threshold 0.7 is the paper's acceptable line, not a pass/fail of truth.";
 
@@ -124,10 +164,10 @@ export function score(r = "", d = "", p = "", n = "") {
   const td = tokensFrom(d);
   const tp = tokensFrom(p);
   const tn = tokensFrom(n);
-  const rText = Array.isArray(r) ? r.join(" ") : r == null ? "" : String(r);
-  const dText = Array.isArray(d) ? d.join(" ") : d == null ? "" : String(d);
-  const pText = Array.isArray(p) ? p.join(" ") : p == null ? "" : String(p);
-  const nText = Array.isArray(n) ? n.join(" ") : n == null ? "" : String(n);
+  const rText = checkField("r", Array.isArray(r) ? r.join(" ") : r == null ? "" : String(r));
+  const dText = checkField("d", Array.isArray(d) ? d.join(" ") : d == null ? "" : String(d));
+  const pText = checkField("p", Array.isArray(p) ? p.join(" ") : p == null ? "" : String(p));
+  const nText = checkField("n", Array.isArray(n) ? n.join(" ") : n == null ? "" : String(n));
   const union = new Set([...tr, ...td, ...tp]);
   const inter = new Set([...tr].filter((x) => td.has(x) && tp.has(x)));
   const triple = jaccard(tr, td, tp);
@@ -161,6 +201,10 @@ export function score(r = "", d = "", p = "", n = "") {
     primary,
     type_labels,
     type_notes,
+    kid_plain: kidPlainText(band(triple), types),
+    kid_plain_types: Object.fromEntries(types.filter((c) => KID_PLAIN_TYPES[c]).map((c) => [c, KID_PLAIN_TYPES[c]])),
+    schema: "az-clce.report.v0.2",
+    version: ENGINE_VERSION,
     limitation: LIMITATION,
     threshold: THRESHOLD,
     advisory: true,

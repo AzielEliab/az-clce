@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "az-clce"
-version = "0.1.0"
+version = "0.2.0"
 description = "AZ-CLCE: Cross-Layer Consistency Engine. Detects inconsistency across R, D, and P. Not intent, not a scanner, not a lie detector."
 readme = "README.md"
 license = {file = "LICENSE"}

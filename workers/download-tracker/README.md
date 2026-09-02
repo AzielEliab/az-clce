@@ -48,7 +48,7 @@ the Cloudflare namespace title).
 Tracked asset URL:
 
 ```
-https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.1.0.tar.gz
+https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.2.0.tar.gz
 ```
 
 ## CORS

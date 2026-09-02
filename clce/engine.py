@@ -19,7 +19,11 @@ CLCE detects inconsistency, not intent. Never a finding of malice.
 
 from __future__ import annotations
 
+import hashlib
+import json
+import os
 import re
+import sys
 from dataclasses import dataclass, field
 from typing import Iterable
 
@@ -27,6 +31,12 @@ THRESHOLD = 0.7
 ACCEPTABLE = THRESHOLD
 VERY_LOW = 0.3
 HIGH_N_RATIO = 0.5
+
+# Hardening. Empty fields are OK. Oversized fields are rejected.
+MAX_FIELD_CHARS = 64 * 1024
+MAX_BODY_BYTES = 256 * 1024
+
+ENGINE_VERSION = "0.2.0"
 
 # Most severe first. Prefer the most severe matching type; include all.
 SEVERITY = ("D", "C", "B", "A")
@@ -49,6 +59,32 @@ TYPE_NOTES = {
     ),
 }
 
+KID_PLAIN_BAND = {
+    "perfect": (
+        "These three stories match. What it looks like, what they wrote, "
+        "and what it actually does use the same words."
+    ),
+    "acceptable": (
+        "These stories are close enough. A grown-up should still check, "
+        "because close is not the same as perfect."
+    ),
+    "structural_inconsistency": (
+        "These stories do not match. The picture, the writing, and the "
+        "real thing are talking about different stuff."
+    ),
+}
+
+KID_PLAIN_TYPES = {
+    "A": "The picture and the writing do not match, but the real thing is closer to one of them.",
+    "B": "The picture and the writing match, but the real thing is different.",
+    "C": "Important pieces are missing, or none of the three stories really agree.",
+    "D": (
+        "LABEL ONLY. The picture matches the writing, but the real thing is "
+        "very different and lots of pieces are missing. This does not mean "
+        "anyone was trying to trick you. CLCE finds mismatches, not motives."
+    ),
+}
+
 LIMITATION = (
     "CLCE detects inconsistency, not intent. Type D is a label, not a "
     "finding of malice. Human validation required. Not a cybersecurity "
@@ -58,6 +94,30 @@ LIMITATION = (
 )
 
 _SPLIT = re.compile(r"[^a-z0-9]+")
+
+_DEBUG_TRUTHY = frozenset({"1", "true", "yes", "on"})
+
+
+def debug_enabled() -> bool:
+    """True when CLCE_DEBUG is 1/true/yes/on (case-insensitive)."""
+    return os.environ.get("CLCE_DEBUG", "").strip().lower() in _DEBUG_TRUTHY
+
+
+def debug(msg: str) -> None:
+    if debug_enabled():
+        print(f"[CLCE_DEBUG] {msg}", file=sys.stderr)
+
+
+def check_field(name: str, value: str | None) -> str:
+    """Coerce a layer to str. Empty is OK. Reject oversized fields."""
+    if value is None:
+        return ""
+    text = str(value)
+    if len(text) > MAX_FIELD_CHARS:
+        raise ValueError(
+            f"{name} exceeds size limit ({len(text)} > {MAX_FIELD_CHARS} characters)"
+        )
+    return text
 
 
 def tokenize(text: str | None) -> frozenset[str]:
@@ -91,6 +151,35 @@ def _sorted(tokens: Iterable[str]) -> list[str]:
     return sorted(tokens)
 
 
+def canonical_layers_json(r: str, d: str, p: str, n: str) -> str:
+    """Canonical UTF-8 JSON of the four inputs. Key order d, n, p, r."""
+    return json.dumps(
+        {"d": d, "n": n, "p": p, "r": r},
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def input_sha256(r: str, d: str, p: str, n: str) -> str:
+    """SHA-256 hex digest of the canonical JSON of {r,d,p,n}."""
+    return hashlib.sha256(canonical_layers_json(r, d, p, n).encode("utf-8")).hexdigest()
+
+
+def kid_plain_text(band_name: str, types: tuple[str, ...]) -> str:
+    """Sixth-grade explanation. Type D stays a label, not a motive."""
+    parts = [KID_PLAIN_BAND.get(band_name, KID_PLAIN_BAND["structural_inconsistency"])]
+    if types:
+        for code in types:
+            note = KID_PLAIN_TYPES.get(code, "")
+            if note:
+                parts.append(f"Type {code}: {note}")
+    else:
+        parts.append("No mismatch type matched. A grown-up should still check.")
+    parts.append("CLCE detects inconsistency, not intent. Type D is a label only.")
+    return " ".join(parts)
+
+
 @dataclass(frozen=True)
 class Report:
     r: str
@@ -111,13 +200,19 @@ class Report:
     types: tuple[str, ...]
     primary: str | None
     band: str
+    kid_plain: str = ""
+    input_sha256: str = ""
+    version: str = ENGINE_VERSION
     limitation: str = LIMITATION
     extra: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         notes = {code: TYPE_NOTES[code] for code in self.types}
         labels = {code: TYPE_LABELS[code] for code in self.types}
+        kid_types = {code: KID_PLAIN_TYPES[code] for code in self.types if code in KID_PLAIN_TYPES}
         return {
+            "schema": "az-clce.report.v0.2",
+            "version": self.version,
             "r": self.r,
             "d": self.d,
             "p": self.p,
@@ -142,6 +237,9 @@ class Report:
             "primary": self.primary,
             "type_labels": labels,
             "type_notes": notes,
+            "kid_plain": self.kid_plain,
+            "kid_plain_types": kid_types,
+            "input_sha256": self.input_sha256,
             "limitation": self.limitation,
             "threshold": THRESHOLD,
             "advisory": True,
@@ -209,6 +307,10 @@ def _matching_types(
 
 def score(r: str = "", d: str = "", p: str = "", n: str = "") -> Report:
     """Compute triple, pairwise, CLCE+, band, and mismatch types."""
+    r = check_field("r", r)
+    d = check_field("d", d)
+    p = check_field("p", p)
+    n = check_field("n", n)
     tr, td, tp, tn = tokenize(r), tokenize(d), tokenize(p), tokenize(n)
     union = set(tr) | set(td) | set(tp)
     inter = set(tr) & set(td) & set(tp)
@@ -221,6 +323,15 @@ def score(r: str = "", d: str = "", p: str = "", n: str = "") -> Report:
     ratio = _n_ratio(len(tn), len(union))
     types = _matching_types(rd, dp, rp, triple, ratio)
     primary = types[0] if types else None
+    band_name = band(triple)
+    digest = input_sha256(r, d, p, n)
+    plain = kid_plain_text(band_name, types)
+    debug(
+        f"triple={triple:.4f} rd={rd:.4f} dp={dp:.4f} rp={rp:.4f} "
+        f"plus={plus:.4f} types={list(types)} band={band_name} "
+        f"input_sha256={digest} tokens_r={_sorted(tr)} tokens_d={_sorted(td)} "
+        f"tokens_p={_sorted(tp)} tokens_n={_sorted(tn)}"
+    )
     return Report(
         r=r,
         d=d,
@@ -239,7 +350,10 @@ def score(r: str = "", d: str = "", p: str = "", n: str = "") -> Report:
         n_ratio=ratio,
         types=types,
         primary=primary,
-        band=band(triple),
+        band=band_name,
+        kid_plain=plain,
+        input_sha256=digest,
+        version=ENGINE_VERSION,
     )
 
 

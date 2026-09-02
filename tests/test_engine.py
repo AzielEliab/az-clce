@@ -78,3 +78,18 @@ def test_jaccard_identical_sets() -> None:
     s = frozenset({"a", "b"})
     assert jaccard(s, s) == 1.0
     assert jaccard(s, frozenset({"a"})) == 0.5
+
+
+def test_kid_plain_and_input_sha256() -> None:
+    report = score(**PERFECT)
+    assert "stories match" in report.kid_plain.lower() or "same words" in report.kid_plain.lower()
+    assert len(report.input_sha256) == 64
+    assert report.version == "0.2.0"
+
+
+def test_oversized_field_rejected() -> None:
+    import pytest
+    from clce.engine import MAX_FIELD_CHARS
+
+    with pytest.raises(ValueError, match="size limit"):
+        score(r="a" * (MAX_FIELD_CHARS + 1))

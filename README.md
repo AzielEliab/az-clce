@@ -7,6 +7,7 @@ space N. Jaccard triple, pairwise average (paper §5), and CLCE+.
 **Author:** Aziel Eliab
 **Date:** 2026
 **License:** [Apache-2.0](LICENSE)
+**Version:** 0.2.0
 
 > CLCE detects inconsistency, not intent. Type D is a label, not a finding of malice.
 
@@ -19,18 +20,33 @@ How to contribute: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Quick start
 
-```bash
-python -m venv .venv && source .venv/bin/activate && pip install -e ".[dev]"
-clce ui
-```
+1. Install
 
-Open http://127.0.0.1:8845 (loopback only). No CDN, no telemetry.
+   ```bash
+   python -m venv .venv && source .venv/bin/activate && pip install -e ".[dev]"
+   ```
+
+2. Open the local UI (loopback only, no CDN, no telemetry)
+
+   ```bash
+   clce ui
+   ```
+
+   Then open http://127.0.0.1:8845
+
+3. Fill the four boxes (or click **Fill sample**) and press **Score**.
+
+   Empty boxes are OK. Switch **Simple / Advanced** to see Jaccard and types A–D.
+   Import JSON/txt `{r,d,p,n}`. Export a report JSON plus a human `.txt` receipt
+   with the sha256 of the inputs.
 
 Counted download: [https://azclce-download-tracker.vibelock.workers.dev/](https://azclce-download-tracker.vibelock.workers.dev/)
 
-Direct tarball (also counted): [az-clce-0.1.0.tar.gz](https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.1.0.tar.gz)
+Direct tarball (also counted): [az-clce-0.2.0.tar.gz](https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.2.0.tar.gz)
 
 GitHub: [https://github.com/AzielEliab/az-clce](https://github.com/AzielEliab/az-clce)
+
+Self-check: `clce doctor`. Debug: `CLCE_DEBUG=1 clce score --r "a" --d "a" --p "a"`.
 
 ---
 
@@ -40,7 +56,7 @@ GitHub: [https://github.com/AzielEliab/az-clce](https://github.com/AzielEliab/az
 - Human validation required.
 - Not a cybersecurity exploit, not a scanner of other people's systems, not a lie detector.
 - Advisory scores only. Threshold 0.7 is the paper's "acceptable" line, not a pass/fail of truth.
-- Loopback UI, no CDN, no telemetry.
+- Loopback UI, no CDN, no telemetry. Size limits on inputs. Empty fields are OK.
 - Standalone from ForgeReceipts, ZionPattern, DecisionGATE, AZ-OS, Glossa Filter.
 
 ## What it computes
@@ -66,6 +82,8 @@ Band: 1.0 perfect; ≥0.7 acceptable; <0.7 structural inconsistency.
 
 The report lists every matching type and prefers the most severe (D > C > B > A) as `primary`.
 
+Kid-plain result (Simple view): a sixth-grade sentence. Advanced view: Jaccard numbers and types A–D.
+
 ## Install
 
 Python 3.10+. Stdlib only at runtime.
@@ -80,13 +98,18 @@ pip install -e ".[dev]"
 
 ```bash
 clce version
+clce doctor                                      # self-check, no network
 clce ui                                          # 127.0.0.1:8845 loopback only
 clce score --r "..." --d "..." --p "..." [--n "..."]
+clce score --import layers.json --export report.json
 clce classify --r ... --d ... --p ... [--n ...]
 clce gate --min 0.7 --r ... --d ... --p ...      # exit 0 if triple ≥ min else 1
 ```
 
-`--json` prints the full report. `--help` lists `ui` and `version`.
+`--import` reads JSON or labeled `.txt` `{r,d,p,n}`. `--export` writes the report
+JSON and a sibling `.txt` receipt with `input_sha256`. `--json` prints the full
+report. `--help` lists `ui`, `doctor`, and `version`. `CLCE_DEBUG=1` logs tokens
+and scores to stderr.
 
 ## Library
 
@@ -99,22 +122,31 @@ report = score(
     p="login button submits",
 )
 print(report.triple, report.pairwise_avg, report.plus, report.band)
+print(report.kid_plain, report.input_sha256)
 print(classify(r="...", d="...", p="...", n="csrf session").types)
 ok, report = gate(r="a", d="a", p="a", min_score=0.7)
 ```
 
 ## UI
 
-`clce ui` binds **127.0.0.1:8845** only. Three textareas R/D/P, optional N,
-Score / Classify / Gate. Shows triple + pairwise + CLCE+ + types + the
-limitation banner. Self-contained CSS, no CDN, no telemetry. Dark matte / gold.
+`clce ui` binds **127.0.0.1:8845** only. Four boxes:
+
+- What it looks like (R)
+- What they wrote (D)
+- What it actually does (P)
+- Missing pieces (N)
+
+Giant Score, kid-plain result, Fill sample, Simple/Advanced (Jaccard, types A–D).
+Import JSON/txt. Export report JSON + human receipt. Limitation banner.
+Self-contained CSS, no CDN, no telemetry. Dark matte / gold.
 
 ## iPhone & Android
 
 Flutter sources: [`mobile/`](mobile/). Application id `com.azieeliab.azclce`.
 Offline. No analytics. Dark matte / gold.
 
-Three fields (R, D, P), optional N, score, mismatch types, limitation banner.
+Four fields with the same kid-plain labels, giant score, sample fill, paste
+import / copy export of JSON + receipt text.
 
 ```bash
 cd mobile
@@ -140,12 +172,13 @@ python -m pytest -q
 ```
 
 Offline. No network. Stdlib runtime. pytest is the dev extra.
+Keeps A–D fixtures. Adds import/export roundtrip and `clce doctor`.
 
 ## Worker
 
 Isolated download counter for this project only. Worker
 `azclce-download-tracker`, project `azclce`, KV `AZCLCE_DOWNLOADS` bound as
-`DOWNLOADS`. GET `/download` **serves** `az-clce-0.1.0.tar.gz` (does not 302
+`DOWNLOADS`. GET `/download` **serves** `az-clce-0.2.0.tar.gz` (does not 302
 to GitHub). See [workers/download-tracker/README.md](workers/download-tracker/README.md).
 
 Counted downloads (number on the button, no user reporting):
@@ -154,7 +187,7 @@ Counted downloads (number on the button, no user reporting):
 ## Layout
 
 ```
-clce/                 library (engine, cli, ui)
+clce/                 library (engine, cli, ui, io, doctor)
 clce/web/             loopback UI
 tests/                pytest
 docs/whitepaper.md    spec

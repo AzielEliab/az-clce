@@ -9,7 +9,7 @@ License: Apache-2.0
 > CLCE detects inconsistency, not intent. Type D is a label, not a finding of malice.
 
 This document is the specification implemented by the `az-clce` Python
-package (CLI `clce`), version 0.1.0. Source papers in `docs/source/`
+package (CLI `clce`), version 0.2.0. Source papers in `docs/source/`
 were authored as Aziel System Integration, 2026, and are shipped here as
 **Aziel Eliab**. Forks are welcome and always allowed.
 

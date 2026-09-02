@@ -1,6 +1,7 @@
 # AZ-CLCE — iPhone & Android
 
-Three fields (R, D, P), optional N. Score, mismatch types, limitation banner.
+Four fields: What it looks like (R), What they wrote (D), What it actually does (P),
+Missing pieces (N). Giant score, kid-plain result, sample fill, paste import / copy export.
 
 Offline. No analytics. Dark matte / gold.
 

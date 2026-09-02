@@ -68,6 +68,22 @@ h1 {
   color: var(--ink);
   border-color: var(--gold-dim);
 }
+.view-toggle {
+  display: flex;
+  gap: 0.4rem;
+  margin: 0 0 1rem;
+}
+.view-toggle .view {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line);
+  font-weight: 600;
+}
+.view-toggle .view.on {
+  background: var(--gold);
+  color: var(--bg);
+  border-color: var(--gold);
+}
 fieldset {
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -131,11 +147,13 @@ button {
   font-weight: 650;
 }
 button[data-mode="classify"],
-button[data-mode="gate"] {
+button[data-mode="gate"],
+#sample, #import-btn, #export-btn {
   background: transparent;
   color: var(--ink);
   border-color: var(--ink);
 }
+body.simple .advanced-only { display: none; }
 h2 {
   font-size: 1.05rem;
   letter-spacing: 0.08em;
@@ -143,6 +161,25 @@ h2 {
   color: var(--muted);
   font-weight: 600;
   margin: 0 0 0.7rem;
+}
+.giant {
+  font-variant-numeric: tabular-nums;
+  font-size: 4.6rem;
+  line-height: 1;
+  font-weight: 700;
+  margin: 0 0 0.55rem;
+  color: var(--gold);
+  letter-spacing: -0.03em;
+}
+.giant.idle { color: var(--muted); font-size: 3rem; }
+.giant.perfect { color: var(--pass); }
+.giant.acceptable { color: var(--warn); }
+.giant.structural_inconsistency { color: var(--fail); }
+.kid {
+  font-size: 1.15rem;
+  margin: 0 0 1.2rem;
+  color: var(--ink);
+  max-width: 40rem;
 }
 #metrics {
   display: grid;
@@ -171,6 +208,7 @@ h2 {
 }
 @media (max-width: 640px) {
   #metrics { grid-template-columns: 1fr 1fr; }
+  .giant { font-size: 3.4rem; }
 }
 .band {
   padding: 0.75rem 1rem;
@@ -215,10 +253,12 @@ h2 {
   color: var(--muted);
   font-size: 0.9rem;
 }
-.gate-line {
+.gate-line, .sha-line {
   margin-top: 0.85rem;
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   letter-spacing: 0.06em;
+  color: var(--muted);
+  word-break: break-all;
 }
 footer {
   margin-top: 2rem;

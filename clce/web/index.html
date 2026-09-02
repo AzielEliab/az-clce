@@ -8,12 +8,11 @@
 </head>
 <body>
   <header>
-    <div class="tag">AZ-CLCE · v0.1.0 · loopback · advisory</div>
+    <div class="tag">AZ-CLCE · v0.2.0 · loopback · advisory</div>
     <h1>AZ-CLCE</h1>
     <p class="motto">Cross-Layer Consistency Engine. Inconsistency, not intent.</p>
     <p class="lede">
-      Score representation (R), description (D), and reality (P) as token sets.
-      Jaccard triple, pairwise average, optional CLCE+ with missing elements (N).
+      Type four stories. We check if they match. We do not guess why.
       Type D is a label, not a finding of malice. Human validation required.
     </p>
   </header>
@@ -25,55 +24,70 @@
     acceptable line, not a pass/fail of truth. Loopback UI. Self-contained CSS. No telemetry.
   </aside>
 
+  <div class="view-toggle" role="group" aria-label="Simple or advanced view">
+    <button type="button" id="view-simple" class="view on" aria-pressed="true">Simple</button>
+    <button type="button" id="view-advanced" class="view" aria-pressed="false">Advanced</button>
+  </div>
+
   <form id="clce-form" autocomplete="off">
     <fieldset>
-      <legend>Layers</legend>
+      <legend>Four boxes</legend>
 
       <label for="r">
-        <span class="kicker">R — Representation</span>
-        Visuals, diagrams, UI. Tokens, lowercase, split on non-alnum.
+        <span class="kicker">What it looks like (R)</span>
+        The picture, the screen, the diagram.
       </label>
-      <textarea id="r" name="r" rows="4" placeholder="login button blue submit"></textarea>
+      <textarea id="r" name="r" rows="4" placeholder="a blue login button that says submit"></textarea>
 
       <label for="d">
-        <span class="kicker">D — Description</span>
-        Text, instructions, claims.
+        <span class="kicker">What they wrote (D)</span>
+        The words, the help text, the claim.
       </label>
-      <textarea id="d" name="d" rows="4" placeholder="login form submits credentials"></textarea>
+      <textarea id="d" name="d" rows="4" placeholder="the login form submits your name"></textarea>
 
       <label for="p">
-        <span class="kicker">P — Reality</span>
-        Physical or functional truth.
+        <span class="kicker">What it actually does (P)</span>
+        The real thing that happens.
       </label>
-      <textarea id="p" name="p" rows="4" placeholder="login button submits credentials"></textarea>
+      <textarea id="p" name="p" rows="4" placeholder="the login button submits your name"></textarea>
 
       <label for="n">
-        <span class="kicker">N — Missing expected (optional)</span>
-        Negative space. Higher N reduces the CLCE+ score.
+        <span class="kicker">Missing pieces (N)</span>
+        Stuff you expected but do not see. Optional. Empty is OK.
       </label>
-      <textarea id="n" name="n" rows="2" placeholder="csrf session timeout"></textarea>
+      <textarea id="n" name="n" rows="2" placeholder="forgot password link"></textarea>
     </fieldset>
 
     <div class="actions">
       <button type="submit" id="score" data-mode="score">Score</button>
-      <button type="button" id="classify" data-mode="classify">Classify</button>
-      <button type="button" id="gate" data-mode="gate">Gate ≥ 0.7</button>
+      <button type="button" id="sample">Fill sample</button>
+      <button type="button" id="import-btn">Import</button>
+      <button type="button" id="export-btn">Export</button>
+      <button type="button" id="classify" data-mode="classify" class="advanced-only">Classify</button>
+      <button type="button" id="gate" data-mode="gate" class="advanced-only">Gate ≥ 0.7</button>
     </div>
+    <input id="import-file" type="file" accept=".json,.txt,application/json,text/plain" hidden>
   </form>
 
   <section class="report" aria-live="polite">
-    <h2>Report</h2>
-    <dl id="metrics">
-      <div><dt>triple</dt><dd id="m-triple">—</dd></div>
-      <div><dt>R↔D</dt><dd id="m-rd">—</dd></div>
-      <div><dt>D↔P</dt><dd id="m-dp">—</dd></div>
-      <div><dt>R↔P</dt><dd id="m-rp">—</dd></div>
-      <div><dt>pairwise avg</dt><dd id="m-avg">—</dd></div>
-      <div><dt>CLCE+</dt><dd id="m-plus">—</dd></div>
-    </dl>
-    <p id="band" class="band idle">No run yet.</p>
-    <ul id="types" class="types"></ul>
-    <p id="gate-line" class="gate-line"></p>
+    <p id="giant-score" class="giant idle" aria-label="Score">—</p>
+    <p id="kid-plain" class="kid">Fill the boxes (or click Fill sample) and press Score.
+      Empty boxes are OK. We only look for mismatches, never motives.</p>
+    <div id="advanced-panel" class="advanced-panel" hidden>
+      <h2>Jaccard &amp; types A–D</h2>
+      <dl id="metrics">
+        <div><dt>triple</dt><dd id="m-triple">—</dd></div>
+        <div><dt>R↔D</dt><dd id="m-rd">—</dd></div>
+        <div><dt>D↔P</dt><dd id="m-dp">—</dd></div>
+        <div><dt>R↔P</dt><dd id="m-rp">—</dd></div>
+        <div><dt>pairwise avg</dt><dd id="m-avg">—</dd></div>
+        <div><dt>CLCE+</dt><dd id="m-plus">—</dd></div>
+      </dl>
+      <p id="sha-line" class="sha-line"></p>
+      <p id="band" class="band idle">No run yet.</p>
+      <ul id="types" class="types"></ul>
+      <p id="gate-line" class="gate-line"></p>
+    </div>
   </section>
 
   <footer>

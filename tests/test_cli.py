@@ -12,7 +12,7 @@ from tests.fixtures import BELOW, PERFECT, TYPE_A, TYPE_B, TYPE_D
 def test_cli_version(capsys) -> None:
     assert main(["version"]) == 0
     assert capsys.readouterr().out.strip() == f"clce {__version__}"
-    assert __version__ == "0.1.0"
+    assert __version__ == "0.2.0"
 
 
 def test_cli_help_lists_ui_and_version() -> None:
@@ -35,6 +35,7 @@ def test_help_text_contains_ui_and_version(capsys) -> None:
     assert "score" in out
     assert "classify" in out
     assert "gate" in out
+    assert "doctor" in out
 
 
 def test_cli_score_json(capsys) -> None:
@@ -101,3 +102,32 @@ def test_gate_json_includes_passed(capsys) -> None:
     assert code == 0
     assert payload["gate"]["passed"] is True
     assert payload["gate"]["min"] == 0.7
+
+
+def test_cli_score_import_export(tmp_path, capsys) -> None:
+    src = tmp_path / "layers.json"
+    src.write_text(
+        '{"r": "login button submit credentials", "d": "login button submit credentials", '
+        '"p": "login button submit credentials", "n": ""}',
+        encoding="utf-8",
+    )
+    out = tmp_path / "report.json"
+    code = main(["score", "--json", "--import", str(src), "--export", str(out)])
+    payload = json.loads(capsys.readouterr().out)
+    assert code == 0
+    assert payload["triple"] == 1.0
+    assert payload["input_sha256"]
+    assert out.is_file()
+    receipt = out.with_suffix(".txt")
+    assert receipt.is_file()
+    assert payload["input_sha256"] in receipt.read_text(encoding="utf-8")
+
+
+def test_cli_help_lists_import_export(capsys) -> None:
+    try:
+        main(["score", "--help"])
+    except SystemExit:
+        pass
+    out = capsys.readouterr().out
+    assert "--import" in out
+    assert "--export" in out

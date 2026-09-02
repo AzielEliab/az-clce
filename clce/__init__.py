@@ -20,23 +20,32 @@ from __future__ import annotations
 
 from clce.engine import (
     ACCEPTABLE,
+    ENGINE_VERSION,
     HIGH_N_RATIO,
+    MAX_BODY_BYTES,
+    MAX_FIELD_CHARS,
     THRESHOLD,
     TYPE_LABELS,
     VERY_LOW,
     Report,
     band,
     classify,
+    debug_enabled,
     gate,
+    input_sha256,
+    kid_plain_text,
     score,
     tokenize,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __author__ = "Aziel Eliab"
 __all__ = [
     "ACCEPTABLE",
+    "ENGINE_VERSION",
     "HIGH_N_RATIO",
+    "MAX_BODY_BYTES",
+    "MAX_FIELD_CHARS",
     "THRESHOLD",
     "TYPE_LABELS",
     "VERY_LOW",
@@ -44,7 +53,10 @@ __all__ = [
     "__version__",
     "band",
     "classify",
+    "debug_enabled",
     "gate",
+    "input_sha256",
+    "kid_plain_text",
     "score",
     "tokenize",
 ]

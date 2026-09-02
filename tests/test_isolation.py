@@ -40,6 +40,8 @@ def test_package_never_imports_siblings() -> None:
     import clce.cli  # noqa: F401
     import clce.engine  # noqa: F401
     import clce.ui  # noqa: F401
+    import clce.io  # noqa: F401
+    import clce.doctor  # noqa: F401
 
     for name in list(sys.modules):
         assert _root_of(name) not in FORBIDDEN_ROOTS
@@ -78,7 +80,7 @@ def test_worker_isolated() -> None:
     assert "/stats" in toml
     src = (ROOT / "workers" / "download-tracker" / "src" / "index.js").read_text(encoding="utf-8")
     assert 'const PROJECT = "azclce"' in src
-    assert "az-clce-0.1.0.tar.gz" in src
+    assert "az-clce-0.2.0.tar.gz" in src
     assert "azclce|__total__" in src or 'PROJECT + "|__total__"' in src
     assert "Isolated counter" in src
     assert "env.ASSETS.fetch" in src

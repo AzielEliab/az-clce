@@ -18,6 +18,8 @@ def main() -> None:
     print(f"plus: {report.plus:.4f}")
     print(f"band: {report.band}")
     print(f"types: {report.types} primary={report.primary}")
+    print(f"kid_plain: {report.kid_plain}")
+    print(f"input_sha256: {report.input_sha256}")
     print(report.limitation)
 
 

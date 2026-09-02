@@ -246,6 +246,16 @@ finding of malice. Threshold 0.7 is advisory.
 One-URL catalog: https://aziel-runtime.vibelock.workers.dev/openapi.json
 
 
+## Cite this
+
+Aziel Eliab. AZ-CLCE. https://github.com/AzielEliab/az-clce. https://azclce-download-tracker.vibelock.workers.dev.
+
+- Catalog: https://aziel-runtime.vibelock.workers.dev/
+- Worker homepage: https://azclce-download-tracker.vibelock.workers.dev/
+- Counted download (gzip HTTP 200, no 302): https://azclce-download-tracker.vibelock.workers.dev/download
+- GitHub: https://github.com/AzielEliab/az-clce
+- Citation JSON: https://azclce-download-tracker.vibelock.workers.dev/cite.json
+
 ## License
 
 Apache-2.0. See [LICENSE](LICENSE).

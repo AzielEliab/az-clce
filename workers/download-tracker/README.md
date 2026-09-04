@@ -48,14 +48,19 @@ the Cloudflare namespace title).
 Tracked asset URL:
 
 ```
-https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.2.0.tar.gz
+https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.3.0.tar.gz
 ```
+
+`POST /v1/spre` and `POST /v1/verify-transfer` are ingest hooks. They
+do not increment KV. See [docs/ingest-hooks.md](../../docs/ingest-hooks.md).
+Not a VPN.
 
 ## CORS
 
 All responses include `Access-Control-Allow-Origin: *`.
 
-`POST /v1/score` `POST /v1/classify` `POST /v1/gate`. Inconsistency not intent.
+`POST /v1/score` `POST /v1/classify` `POST /v1/gate` `POST /v1/spre`
+`POST /v1/verify-transfer`. Inconsistency not intent. SPRE never guilt.
 
 ## AI runtime (`/v1`)
 

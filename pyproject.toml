@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "az-clce"
-version = "0.2.0"
-description = "AZ-CLCE: Cross-Layer Consistency Engine. Detects inconsistency across R, D, and P. Not intent, not a scanner, not a lie detector."
+version = "0.3.0"
+description = "AZ-CLCE + SPRE. Cross-layer inconsistency detector and structural suppression pattern engine. Not intent, not guilt, not a scanner."
 readme = "README.md"
 license = {file = "LICENSE"}
 authors = [{name = "Aziel Eliab"}]
@@ -17,6 +17,7 @@ keywords = [
     "documentation",
     "validation",
     "clce",
+    "spre",
     "advisory",
 ]
 classifiers = [
@@ -37,6 +38,7 @@ dev = ["pytest>=7.4"]
 
 [project.scripts]
 clce = "clce.cli:main"
+spre = "spre.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/AzielEliab/az-clce"
@@ -45,7 +47,7 @@ Issues = "https://github.com/AzielEliab/az-clce/issues"
 Counted-downloads = "https://azclce-download-tracker.vibelock.workers.dev/"
 
 [tool.setuptools.packages.find]
-include = ["clce*"]
+include = ["clce*", "spre*"]
 
 [tool.setuptools.package-data]
 clce = ["web/*"]

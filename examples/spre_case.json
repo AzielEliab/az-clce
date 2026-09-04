@@ -1,0 +1,14 @@
+{
+  "schema": "spre.case.v0.3",
+  "official": "The office says the water is safe and the matter is closed.",
+  "internal": "Internal notes skipped the expected control step and hid failing tests.",
+  "physics": "Independent lab chemistry found lead far above the official safety claim.",
+  "coroner": "The same office issued the medical-sounding all-clear.",
+  "authority": "The same office investigated the complaints it had certified.",
+  "evidence": ["independent university water tests", "resident samples"],
+  "destroyed": ["early failing tests not kept in the public file"],
+  "victim_framing": "Residents were called hysterical and told lifestyle explained the rash.",
+  "records": "Some early failing tests were unlogged in the public record.",
+  "contemporaneous": "Resident contemporaneous samples contradicted the later official line.",
+  "note": "Synthetic structural example. Not a real case. Not a charge."
+}

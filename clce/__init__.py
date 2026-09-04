@@ -18,6 +18,8 @@ Forks are welcome and always allowed.
 
 from __future__ import annotations
 
+from clce.triad import assemble as triad_assemble
+from clce.triad import schema_doc as triad_schema
 from clce.engine import (
     ACCEPTABLE,
     ENGINE_VERSION,
@@ -38,7 +40,7 @@ from clce.engine import (
     tokenize,
 )
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __author__ = "Aziel Eliab"
 __all__ = [
     "ACCEPTABLE",
@@ -59,4 +61,6 @@ __all__ = [
     "kid_plain_text",
     "score",
     "tokenize",
+    "triad_assemble",
+    "triad_schema",
 ]

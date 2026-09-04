@@ -1,11 +1,14 @@
 import * as engine from "./engine.js";
+import * as spre from "./spre.js";
+import * as transfer from "./transfer.js";
+import * as triad from "./triad.js";
 const EXAMPLE_PAYLOAD = {
   "r": "login button blue",
   "d": "login form submits",
   "p": "login button submits"
 };
 
-const SKILL_MARKDOWN = "---\nname: AZ-CLCE\ndescription: Use when calling AZ-CLCE hosted /v1 or installing the local package. Author Aziel Eliab.\n---\n\n# AZ-CLCE\n\nCLCE detects inconsistency, not intent. Type D is a label, not a finding of malice. Human validation required. Author: Aziel Eliab.\n\n**THIS IS:** a Cross-Layer Consistency Engine that scores inconsistency across representation (R), description (D), and reality (P).\n\n**THIS IS NOT:** a finding of malice, a cybersecurity exploit, a scanner of other people's systems, or a truth verdict. Type D is a label only.\n\nAuthor: **Aziel Eliab**. Forks are welcome and always allowed. Apache-2.0.\n\nAlways send `User-Agent: Mozilla/5.0`. Cloudflare Workers may 403 an empty agent.\n\n## Call these URLs\n\n- Worker OpenAPI: https://azclce-download-tracker.vibelock.workers.dev/openapi.json\n- Catalog OpenAPI: https://aziel-runtime.vibelock.workers.dev/openapi.json\n- MCP: `POST https://aziel-runtime.vibelock.workers.dev/mcp`\n- Live skill (this markdown): `GET https://azclce-download-tracker.vibelock.workers.dev/v1/skill`\n\nOps (do **not** increment downloads or views):\n\n| Method | Path | What |\n|--------|------|------|\n| GET | `/v1/health` | Liveness. Does not increment downloads. |\n| GET | `/v1/skill` | This markdown. Does not increment downloads. |\n| POST | `/v1/score` | Jaccard triple, pairwise average, CLCE+. Advisory. |\n| POST | `/v1/classify` | Same as score plus mismatch types. Type D is a label only. |\n| POST | `/v1/gate` | Pass iff triple >= min_score. Advisory, not a truth verdict. |\n\nGrok: import OpenAPI as a custom tool. ChatGPT: GPT Actions. Venice: HTTP tools.\n\n## Example\n\n```bash\ncurl -s -A 'Mozilla/5.0' https://azclce-download-tracker.vibelock.workers.dev/v1/health\ncurl -s -A 'Mozilla/5.0' https://azclce-download-tracker.vibelock.workers.dev/v1/skill\ncurl -s -A 'Mozilla/5.0' -X POST https://azclce-download-tracker.vibelock.workers.dev/v1/score \\\n  -H 'content-type: application/json' \\\n  -d '{\"r\":\"login button blue\",\"d\":\"login form submits\",\"p\":\"login button submits\"}'\n```\n\n## Local (after one-click install)\n\n```bash\ncurl -fsSL https://azclce-download-tracker.vibelock.workers.dev/install.sh | bash\nclce ui\n```\n\nThen open http://127.0.0.1:8845 (loopback only).\n\nCounted download (gzip HTTP 200, no 302): https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.2.0.tar.gz\nGitHub: https://github.com/AzielEliab/az-clce\n\n## Catalog + local UI\n\nAuthor: **Aziel Eliab**. Honest scope: Jaccard triple / pairwise / CLCE+. Detects inconsistency, not intent.\n\n- Catalog product: https://aziel-runtime.vibelock.workers.dev/p/azclce/\n- Catalog OpenAPI: https://aziel-runtime.vibelock.workers.dev/openapi.json\n- Catalog MCP: `POST https://aziel-runtime.vibelock.workers.dev/mcp`\n- This Worker skill: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/skill`\n- This Worker OpenAPI: https://azclce-download-tracker.vibelock.workers.dev/openapi.json\n- Sample payload: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/example`\n\nLocal UI: **Import JSON file** (`type=file`) and **Export JSON**. Then `clce doctor`.\n\nGrok: import catalog or Worker OpenAPI as a custom tool. ChatGPT: GPT Actions. Venice: HTTP tools.\n";
+const SKILL_MARKDOWN = "---\nname: AZ-CLCE\ndescription: Use when calling AZ-CLCE or SPRE hosted /v1 or installing the local package. Author Aziel Eliab.\n---\n\n# AZ-CLCE + SPRE\n\nCLCE detects inconsistency, not intent. Type D is a label, not a finding of malice. SPRE scores structural similarity to historically confirmed failures and never asserts guilt or conspiracy. Official narrative is not evidence. Author: **Aziel Eliab**.\n\n**THIS IS:** a Cross-Layer Consistency Engine (R/D/P Jaccard) plus SPRE (SP(c) = {P1..P5, E, C, T, D}; PC = SSI × E) — two of three Aziel triad verifiers (PhysLing lives in aziel-corpus). Transfer verify and AzielTether queue hooks included.\n\n**THIS IS NOT:** a finding of malice, a guilt or conspiracy verdict, a cybersecurity exploit, a scanner of other people's systems, a truth verdict, or a VPN (not MirageGrid). Hosted `/v1` does not increment downloads or views.\n\nAlways send `User-Agent: Mozilla/5.0`. Cloudflare Workers may 403 an empty agent.\n\n## Call these URLs\n\n- Worker OpenAPI: https://azclce-download-tracker.vibelock.workers.dev/openapi.json\n- Catalog OpenAPI: https://aziel-runtime.vibelock.workers.dev/openapi.json\n- MCP: `POST https://aziel-runtime.vibelock.workers.dev/mcp`\n- Live skill (this markdown): `GET https://azclce-download-tracker.vibelock.workers.dev/v1/skill`\n\nOps (do **not** increment downloads or views):\n\n| Method | Path | What |\n|--------|------|------|\n| GET | `/v1/health` | Liveness. Does not increment downloads. |\n| GET | `/v1/skill` | This markdown. Does not increment downloads. |\n| GET | `/v1/example` | Sample CLCE layers. |\n| GET | `/v1/spre/example` | Synthetic SPRE case. Not a real case. |\n| GET | `/v1/mesh` | AzielTether hook status (no VPN). |\n| GET | `/v1/triad` | Component score schema for corpus merge (0–1 and 0–100). |\n| POST | `/v1/score` | Jaccard triple, pairwise average, CLCE+. Advisory. |\n| POST | `/v1/classify` | Same as score plus mismatch types. Type D is a label only. |\n| POST | `/v1/gate` | Pass iff triple >= min_score. Advisory, not a truth verdict. |\n| POST | `/v1/spre` | SPRE score. Structural similarity only. |\n| POST | `/v1/spre/score` | Alias of `/v1/spre`. |\n| POST | `/v1/verify-transfer` | Ingest hook: verify posted files, rescore SPRE + CLCE. |\n| POST | `/v1/tether-ingest` | Accept a hash-chained queue item. Zero retention. |\n\nGrok: import OpenAPI as a custom tool. ChatGPT: GPT Actions. Venice: HTTP tools.\n\n## Example\n\n```bash\ncurl -s -A 'Mozilla/5.0' https://azclce-download-tracker.vibelock.workers.dev/v1/health\ncurl -s -A 'Mozilla/5.0' https://azclce-download-tracker.vibelock.workers.dev/v1/skill\ncurl -s -A 'Mozilla/5.0' -X POST https://azclce-download-tracker.vibelock.workers.dev/v1/score \\\n  -H 'content-type: application/json' \\\n  -d '{\"r\":\"login button blue\",\"d\":\"login form submits\",\"p\":\"login button submits\"}'\ncurl -s -A 'Mozilla/5.0' -X POST https://azclce-download-tracker.vibelock.workers.dev/v1/spre \\\n  -H 'content-type: application/json' \\\n  -d '{\"official\":\"The office says the matter is closed.\",\"physics\":\"Independent chemistry disagrees.\"}'\n```\n\n## Local (after one-click install)\n\n```bash\ncurl -fsSL https://azclce-download-tracker.vibelock.workers.dev/install.sh | bash\nclce ui\nclce doctor\nclce verify-transfer PATH\nclce verify-transfer older_payloads/ --backfill --ndjson\nspre score --import case.json\nspre score older_payloads/ --ndjson\nspre verify-transfer PATH\n```\n\nThen open http://127.0.0.1:8845 (loopback only).\n\nCounted download (gzip HTTP 200, no 302): https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.3.0.tar.gz\nGitHub: https://github.com/AzielEliab/az-clce\n\n## Catalog + local UI\n\nAuthor: **Aziel Eliab**. Honest scope: Jaccard triple / pairwise / CLCE+ plus SPRE structural similarity. Detects inconsistency, not intent. Never guilt.\n\n- Catalog product: https://aziel-runtime.vibelock.workers.dev/p/azclce/\n- Catalog OpenAPI: https://aziel-runtime.vibelock.workers.dev/openapi.json\n- Catalog MCP: `POST https://aziel-runtime.vibelock.workers.dev/mcp`\n- This Worker skill: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/skill`\n- This Worker OpenAPI: https://azclce-download-tracker.vibelock.workers.dev/openapi.json\n- Sample payload: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/example`\n\nLocal UI: **Import JSON file** (`type=file`) and **Export JSON**. Then `clce doctor`.\n\nGrok: import catalog or Worker OpenAPI as a custom tool. ChatGPT: GPT Actions. Venice: HTTP tools.\n\n## Node mesh (AzielTether)\n\nPrefer the central Worker when healthy. Offline, `clce verify-transfer` / `spre verify-transfer` append hash-chained items to `~/.az-clce/tether-queue.jsonl` (scopes `az-clce` and `spre`). AzielTether batches those items and reconciles to central on restore. Not a VPN. Not MirageGrid.\n\n## Triad scores (for aziel-corpus)\n\nSPRE and CLCE emit `triad_component` plus a package `triad` on `verify-transfer`. Unit is **[0, 1]** (`score_100` is the 0–100 twin). PhysLing is an empty slot (`home: aziel-corpus`). Combined `final.score` is the mean of the three **only when all three have verified**. See `docs/triad.md`.\n\nBatch/backfill older payloads:\n\n```bash\nclce verify-transfer older_payloads/ --backfill --ndjson\nspre score older_payloads/ --ndjson\nspre score --import older_payloads/ --backfill\n```\n";
 /**
  * AZ-CLCE download tracker (Cloudflare Worker).
  *
@@ -23,7 +26,7 @@ const SKILL_MARKDOWN = "---\nname: AZ-CLCE\ndescription: Use when calling AZ-CLC
  */
 
 const PROJECT = "azclce";
-const DEFAULT_ASSET = "az-clce-0.2.0.tar.gz";
+const DEFAULT_ASSET = "az-clce-0.3.0.tar.gz";
 const DEFAULT_OWNER = "AzielEliab";
 const DEFAULT_REPO = "az-clce";
 const DEFAULT_BRANCH = "main";
@@ -343,7 +346,7 @@ async function indexHtml(env) {
 </style>
 <body>
   <h1>AZ-CLCE</h1>
-  <p class="motto">Cross-Layer Consistency Engine. Inconsistency, not intent. Author Aziel Eliab.</p>
+  <p class="motto">Cross-Layer Consistency Engine + SPRE. Inconsistency, not intent. Never guilt. Author Aziel Eliab.</p>
   <p class="banner">CLCE detects inconsistency, not intent. Type D is a label, not a finding of malice. Human validation required. Author: Aziel Eliab.</p>
   <div class="card">
     <div class="nums">
@@ -432,8 +435,8 @@ function openapiSpec(request) {
     openapi: "3.1.0",
     info: {
       title: "AZ-CLCE runtime",
-      version: "0.2.0",
-      summary: "Cross-Layer Consistency Engine. Inconsistency, not intent.",
+      version: "0.3.0",
+      summary: "Cross-Layer Consistency Engine + SPRE. Inconsistency, not intent. Never guilt.",
       description: engine.LIMITATION,
     },
     servers: [{ url: origin }],
@@ -465,6 +468,41 @@ function openapiSpec(request) {
           responses: { "200": { description: "passed + report" } },
         },
       },
+      "/v1/spre": {
+        post: {
+          operationId: "azclce_spre",
+          summary: "SPRE score. Structural similarity only. Official narrative is not evidence.",
+          requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } },
+          responses: { "200": { description: "spre report" } },
+        },
+      },
+      "/v1/spre/score": {
+        post: {
+          operationId: "azclce_spre_score",
+          summary: "Alias of /v1/spre.",
+          requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } },
+          responses: { "200": { description: "spre report" } },
+        },
+      },
+      "/v1/spre/example": { get: { operationId: "azclceSpreExample", summary: "Synthetic SPRE case. Not a real case. Does not increment downloads.", responses: { "200": { description: "OK" } } } },
+      "/v1/verify-transfer": {
+        post: {
+          operationId: "azclce_verify_transfer",
+          summary: "Ingest hook: verify posted files, rescore SPRE + CLCE. No KV increment.",
+          requestBody: { required: true, content: { "application/json": { schema: { type: "object", properties: { direction: {}, files: { type: "array" } } } } } },
+          responses: { "200": { description: "transfer report" } },
+        },
+      },
+      "/v1/tether-ingest": {
+        post: {
+          operationId: "azclce_tether_ingest",
+          summary: "Accept a hash-chained AzielTether item. Zero retention. Not a VPN.",
+          requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } },
+          responses: { "200": { description: "ack" } },
+        },
+      },
+      "/v1/mesh": { get: { operationId: "azclce_mesh", summary: "AzielTether hook documentation. Not a VPN.", responses: { "200": { description: "ok" } } } },
+      "/v1/triad": { get: { operationId: "azclce_triad", summary: "Triad component score schema for corpus merge (SPRE + CLCE; PhysLing in aziel-corpus).", responses: { "200": { description: "ok" } } } },
     },
   };
 }
@@ -522,7 +560,9 @@ async function handleRuntime(request, url) {
       limitation: engine.LIMITATION,
       threshold: engine.THRESHOLD,
       advisory: true,
-      version: "0.2.0",
+      version: "0.3.0",
+      spre: true,
+      mesh: true,
     });
   }
   if ((path === "/v1/example" || path === "/v1/example/") && (request.method === "GET" || request.method === "HEAD")) {
@@ -583,8 +623,80 @@ async function handleRuntime(request, url) {
     report.input_sha256 = digest;
     return json(report);
   }
+    if ((path === "/v1/spre/example" || path === "/v1/spre/example/") && (request.method === "GET" || request.method === "HEAD")) {
+    return json({
+      ok: true,
+      product: "spre",
+      author: "Aziel Eliab",
+      example: spre.EXAMPLE_CASE,
+      note: "Synthetic structural example. Not a real case. Does not increment downloads.",
+    });
+  }
+
+  if ((path === "/v1/triad" || path === "/v1/triad/") && request.method === "GET") {
+    return json({
+      ok: true,
+      author: "Aziel Eliab",
+      ...triad.schemaDoc(),
+      example: triad.assemble({}),
+    });
+  }
+
+  if ((path === "/v1/mesh" || path === "/v1/mesh/") && request.method === "GET") {
+    return json({
+      ok: true,
+      author: "Aziel Eliab",
+      prefer_central: true,
+      central_health: HOST + "/v1/health",
+      central_ingest: HOST + "/v1/tether-ingest",
+      scopes: ["az-clce", "spre"],
+      vpn: false,
+      miragegrid: false,
+      note: "Prefer central Worker when healthy. Offline nodes queue hash-chained reports for AzielTether batches. Not a VPN. Not MirageGrid.",
+    });
+  }
+
+  if ((path === "/v1/spre" || path === "/v1/spre/" || path === "/v1/spre/score" || path === "/v1/spre/score/") && request.method === "POST") {
+    let body;
+    try { body = await request.json(); } catch {
+      return json({ error: "JSON body required", limitation: spre.LIMITATION }, 400);
+    }
+    try {
+      return json(spre.score(body || {}));
+    } catch (err) {
+      const status = err && err.code === "SIZE_LIMIT" ? 413 : 400;
+      return json({ error: String(err && err.message ? err.message : err), limitation: spre.LIMITATION }, status);
+    }
+  }
+
+  if ((path === "/v1/verify-transfer" || path === "/v1/verify-transfer/") && request.method === "POST") {
+    let body;
+    try { body = await request.json(); } catch {
+      return json({ error: "JSON body required", limitation: engine.LIMITATION }, 400);
+    }
+    return json(await transfer.verifyTransfer(body || {}));
+  }
+
+  if ((path === "/v1/tether-ingest" || path === "/v1/tether-ingest/") && request.method === "POST") {
+    let body;
+    try { body = await request.json(); } catch {
+      return json({ error: "JSON body required" }, 400);
+    }
+    const item = body || {};
+    const scope = item.scope;
+    const okScope = scope === "az-clce" || scope === "spre";
+    return json({
+      ok: Boolean(okScope && item.hash && item.prev_hash && item.report_hash),
+      accepted: Boolean(okScope && item.hash && item.prev_hash && item.report_hash),
+      stored: false,
+      kv_increment: false,
+      scope: okScope ? scope : null,
+      note: "Zero retention ingest. Hash-chain item acknowledged only. Not a VPN. Author Aziel Eliab.",
+    });
+  }
+
   if (path.startsWith("/v1/") || path === "/v1") {
-    return json({ error: "not found", hint: "POST /v1/score /v1/classify /v1/gate", limitation: engine.LIMITATION }, 404);
+    return json({ error: "not found", hint: "POST /v1/score /v1/classify /v1/gate /v1/spre /v1/verify-transfer", limitation: engine.LIMITATION }, 404);
   }
   return null;
 }

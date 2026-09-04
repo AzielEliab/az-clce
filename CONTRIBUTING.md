@@ -20,7 +20,8 @@ Python 3.10+. Core is stdlib only (`dataclasses`, `json`, `http.server`,
 ## Ground rules
 
 1. **Inconsistency, not intent.** Type D is a label, not a finding of
-   malice. Do not add "lie detector", exploit, or remote-scan features.
+   malice. SPRE never asserts guilt or conspiracy. Official narrative
+   is not evidence. Do not add "lie detector", exploit, or remote-scan features.
 2. **Human validation required.** Scores are advisory. Threshold 0.7 is
    the paper's acceptable line, not a pass/fail of truth.
 3. **Keep the dependency list tiny.** Stdlib only in the core.
@@ -37,10 +38,13 @@ Python 3.10+. Core is stdlib only (`dataclasses`, `json`, `http.server`,
 ## Where to change things
 
 - Token sets / Jaccard / CLCE+ / types: `clce/engine.py`
-- CLI: `clce/cli.py` (`clce doctor`, `score --import/--export`)
+- SPRE: `spre/engine.py` (training = confirmed failures only)
+- Triad merge fields: `clce/triad.py` (PhysLing slot for aziel-corpus)
+- Transfer verify / mesh: `clce/transfer.py`, `clce/mesh.py`
+- CLI: `clce/cli.py`, `spre/cli.py` (`verify-transfer`)
 - Import/export: `clce/io.py`
 - Local UI: `clce/ui.py`, `clce/web/`
-- Spec: `docs/whitepaper.md`
+- Spec: `docs/whitepaper.md`, `docs/spre.md`, `docs/node-mesh.md`
 - Source papers: `docs/source/`
 - Flutter: `mobile/`
 - Isolated counter: `workers/download-tracker/`

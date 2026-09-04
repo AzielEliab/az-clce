@@ -347,7 +347,7 @@ class _FormPageState extends State<FormPage> {
     final receipt = StringBuffer()
       ..writeln('AZ-CLCE receipt')
       ..writeln('===============')
-      ..writeln('version: 0.2.0')
+      ..writeln('version: 0.3.0')
       ..writeln()
       ..writeln(limitation)
       ..writeln()

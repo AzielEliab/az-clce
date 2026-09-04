@@ -7,9 +7,10 @@ space N. Jaccard triple, pairwise average (paper §5), and CLCE+.
 **Author:** Aziel Eliab
 **Date:** 2026
 **License:** [Apache-2.0](LICENSE)
-**Version:** 0.2.0
+**Version:** 0.3.0
 
 > CLCE detects inconsistency, not intent. Type D is a label, not a finding of malice.
+> SPRE scores structural similarity only. Official narrative is not evidence. Never guilt.
 
 See the spec: [docs/whitepaper.md](docs/whitepaper.md). Source papers:
 [docs/source/AZ-CLCE-v2.0.pdf](docs/source/AZ-CLCE-v2.0.pdf),
@@ -41,7 +42,7 @@ The Worker serves the gzip itself (HTTP 200, no 302 to GitHub).
 # → [https://azclce-download-tracker.vibelock.workers.dev/](https://azclce-download-tracker.vibelock.workers.dev/) ←
 
 Direct tarball (also counted):
-[az-clce-0.2.0.tar.gz](https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.2.0.tar.gz)
+[az-clce-0.3.0.tar.gz](https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.3.0.tar.gz)
 
 - Live count JSON: [https://azclce-download-tracker.vibelock.workers.dev/stats](https://azclce-download-tracker.vibelock.workers.dev/stats)
 - OpenAPI: [https://azclce-download-tracker.vibelock.workers.dev/openapi.json](https://azclce-download-tracker.vibelock.workers.dev/openapi.json)
@@ -76,22 +77,27 @@ Isolated counter: Worker `azclce-download-tracker`, KV `AZCLCE_DOWNLOADS`. Not m
 
 Counted download: [https://azclce-download-tracker.vibelock.workers.dev/](https://azclce-download-tracker.vibelock.workers.dev/)
 
-Direct tarball (also counted): [az-clce-0.2.0.tar.gz](https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.2.0.tar.gz)
+Direct tarball (also counted): [az-clce-0.3.0.tar.gz](https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.3.0.tar.gz)
 
 GitHub: [https://github.com/AzielEliab/az-clce](https://github.com/AzielEliab/az-clce)
 
 Self-check: `clce doctor`. Debug: `CLCE_DEBUG=1 clce score --r "a" --d "a" --p "a"`.
+Transfer verify: `clce verify-transfer PATH` and `spre verify-transfer PATH`.
 
 ---
 
 ## Honest scope
 
 - CLCE detects **inconsistency, not intent**. Type D is a label, not a finding of malice.
+- SPRE and CLCE are two of three Aziel triad verifiers. PhysLing lives in aziel-corpus. Merge fields are 0–1 (`score_100` is 0–100).
+- SPRE scores **structural similarity** to historically confirmed failures. Never guilt or conspiracy.
+- Official narrative is **not evidence**. Official-only stories lower E and raise poison-suspicion flags.
 - Human validation required.
 - Not a cybersecurity exploit, not a scanner of other people's systems, not a lie detector.
 - Advisory scores only. Threshold 0.7 is the paper's "acceptable" line, not a pass/fail of truth.
 - Loopback UI, no CDN, no telemetry. Size limits on inputs. Empty fields are OK.
-- Standalone from ForgeReceipts, ZionPattern, DecisionGATE, AZ-OS, Glossa Filter.
+- Standalone from ForgeReceipts, ZionPattern, DecisionGATE, AZ-OS, Glossa Filter, MirageGrid.
+- Not a VPN. AzielTether is a software queue, not MirageGrid.
 
 ## What it computes
 
@@ -138,6 +144,11 @@ clce score --r "..." --d "..." --p "..." [--n "..."]
 clce score --import layers.json --export report.json
 clce classify --r ... --d ... --p ... [--n ...]
 clce gate --min 0.7 --r ... --d ... --p ...      # exit 0 if triple ≥ min else 1
+clce verify-transfer PATH                        # structure + SPRE/CLCE rescore JSON
+clce verify-transfer older_payloads/ --backfill --ndjson
+spre score --official "..." --physics "..." --json
+spre score older_payloads/ --ndjson              # batch/backfill directory
+spre verify-transfer PATH
 ```
 
 `--import` reads JSON or labeled `.txt` `{r,d,p,n}`. `--export` writes the report
@@ -212,7 +223,7 @@ Keeps A–D fixtures. Adds import/export roundtrip and `clce doctor`.
 
 Isolated download counter for this project only. Worker
 `azclce-download-tracker`, project `azclce`, KV `AZCLCE_DOWNLOADS` bound as
-`DOWNLOADS`. GET `/download` **serves** `az-clce-0.2.0.tar.gz` (does not 302
+`DOWNLOADS`. GET `/download` **serves** `az-clce-0.3.0.tar.gz` (does not 302
 to GitHub). See [workers/download-tracker/README.md](workers/download-tracker/README.md).
 
 Counted downloads (number on the button, no user reporting):
@@ -221,10 +232,15 @@ Counted downloads (number on the button, no user reporting):
 ## Layout
 
 ```
-clce/                 library (engine, cli, ui, io, doctor)
+clce/                 library (engine, cli, ui, io, doctor, transfer, mesh)
+spre/                 SPRE sibling package (SP(c), SSI, PC)
 clce/web/             loopback UI
 tests/                pytest
 docs/whitepaper.md    spec
+docs/spre.md          SPRE framework
+docs/triad.md         SPRE + CLCE + PhysLing compositing (PhysLing in aziel-corpus)
+docs/node-mesh.md     AzielTether hooks (not a VPN)
+docs/ingest-hooks.md  upload/download verify + Worker ingest
 docs/source/          v1.0 TXT and v2.0 PDF
 mobile/               Flutter iPhone + Android (`flutter create .`)
 workers/download-tracker/   Cloudflare Worker
@@ -238,6 +254,9 @@ finding of malice. Threshold 0.7 is advisory.
 - `POST https://azclce-download-tracker.vibelock.workers.dev/v1/score` `{r,d,p,n}`
 - `POST https://azclce-download-tracker.vibelock.workers.dev/v1/classify` `{r,d,p,n}`
 - `POST https://azclce-download-tracker.vibelock.workers.dev/v1/gate` `{r,d,p,n,min}`
+- `POST https://azclce-download-tracker.vibelock.workers.dev/v1/spre` SPRE case JSON
+- `POST https://azclce-download-tracker.vibelock.workers.dev/v1/verify-transfer` ingest hook (emits triad)
+- `GET https://azclce-download-tracker.vibelock.workers.dev/v1/triad` component score schema (0–1 / 0–100)
 - OpenAPI 3.1: https://azclce-download-tracker.vibelock.workers.dev/openapi.json
 - Help: https://azclce-download-tracker.vibelock.workers.dev/ai
 
@@ -257,7 +276,7 @@ Grok: import the catalog or Worker OpenAPI as a custom tool. ChatGPT: GPT Action
 
 ## Cite this
 
-Aziel Eliab. AZ-CLCE. https://github.com/AzielEliab/az-clce. https://azclce-download-tracker.vibelock.workers.dev.
+Aziel Eliab. AZ-CLCE + SPRE. https://github.com/AzielEliab/az-clce. https://azclce-download-tracker.vibelock.workers.dev.
 
 - Catalog: https://aziel-runtime.vibelock.workers.dev/
 - Worker homepage: https://azclce-download-tracker.vibelock.workers.dev/

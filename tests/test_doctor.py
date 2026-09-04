@@ -25,7 +25,7 @@ def test_cli_doctor(capsys) -> None:
     assert code == 0
     assert "all checks passed" in out
     assert "ok  " in out
-    assert "0.2.0" in out
+    assert "0.3.0" in out
 
 
 def test_cli_doctor_json(capsys) -> None:
@@ -33,7 +33,7 @@ def test_cli_doctor_json(capsys) -> None:
     payload = json.loads(capsys.readouterr().out)
     assert code == 0
     assert payload["ok"] is True
-    assert payload["version"] == "0.2.0"
+    assert payload["version"] == "0.3.0"
 
 
 def test_clce_debug_flag(capsys) -> None:

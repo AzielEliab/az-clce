@@ -95,9 +95,10 @@ class Handler(BaseHTTPRequestHandler):
                     "version": ENGINE_VERSION,
                     "loopback": True,
                     "telemetry": False,
+                    "spre": True,
                     "limitation": (
                         "CLCE detects inconsistency, not intent. "
-                        "Type D is a label only."
+                        "Type D is a label only. SPRE never asserts guilt."
                     ),
                 },
             )
@@ -112,6 +113,8 @@ class Handler(BaseHTTPRequestHandler):
             "/api/gate",
             "/api/import",
             "/api/export",
+            "/api/spre",
+            "/api/verify-transfer",
         }
         if path not in allowed:
             self._json(404, {"error": "not found"})
@@ -150,6 +153,29 @@ class Handler(BaseHTTPRequestHandler):
             return
         if not isinstance(payload, dict):
             self._json(400, {"error": "JSON object required"})
+            return
+        if path == "/api/spre":
+            from spre.engine import score as spre_score
+
+            try:
+                self._json(200, spre_score(payload).to_dict())
+            except ValueError as exc:
+                self._json(413 if "size limit" in str(exc) else 400, {"error": str(exc)})
+            return
+        if path == "/api/verify-transfer":
+            from clce.transfer import verify_transfer
+
+            try:
+                self._json(
+                    200,
+                    verify_transfer(
+                        files=payload.get("files") or None,
+                        direction=str(payload.get("direction") or "local"),
+                        queue=False,
+                    ),
+                )
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
             return
         try:
             r = str(payload.get("r") or "")

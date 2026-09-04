@@ -86,7 +86,7 @@ def test_ui_import_export_and_health() -> None:
         with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/health", timeout=3) as resp:
             health = json.loads(resp.read().decode("utf-8"))
         assert health["ok"] is True
-        assert health["version"] == "0.2.0"
+        assert health["version"] == "0.3.0"
         labeled = (
             "What it looks like (R): login button\n"
             "What they wrote (D): login button\n"

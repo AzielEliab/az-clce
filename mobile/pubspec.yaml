@@ -1,7 +1,7 @@
 name: azclce
 description: Local-first AZ-CLCE. Cross-layer consistency. Inconsistency, not intent. Offline.
 publish_to: "none"
-version: 0.2.0+1
+version: 0.3.0+1
 
 environment:
   sdk: ">=3.3.0 <4.0.0"

@@ -7,6 +7,7 @@
     clce score --import layers.json --export report.json
     clce classify --r ... --d ... --p ... [--n ...]
     clce gate --min 0.7 --r ... --d ... --p ...
+    clce verify-transfer PATH
 
 Detects inconsistency, not intent. Type D is a label, not malice.
 Advisory scores only. Loopback UI. Forks always allowed.
@@ -103,6 +104,22 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Minimum triple score to pass (default 0.7, the paper's acceptable line).",
     )
 
+    p_vt = sub.add_parser(
+        "verify-transfer",
+        help="Verify every file in PATH, rescore SPRE + CLCE, emit JSON.",
+    )
+    p_vt.add_argument("path", help="File, directory, or .tar.gz package.")
+    p_vt.add_argument(
+        "--direction",
+        default="local",
+        choices=("local", "upload", "download"),
+    )
+    p_vt.add_argument(
+        "--no-queue",
+        action="store_true",
+        help="Do not append a tether-queue item.",
+    )
+
     return parser
 
 
@@ -177,6 +194,21 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(str(exc), file=sys.stderr)
             return 2
         return 0
+
+    if args.cmd == "verify-transfer":
+        from clce.transfer import verify_transfer
+
+        try:
+            report = verify_transfer(
+                path=args.path,
+                direction=args.direction,
+                queue=not args.no_queue,
+            )
+        except (OSError, ValueError) as exc:
+            print(f"verify-transfer error: {exc}", file=sys.stderr)
+            return 2
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        return 0 if report.get("ok") else 1
 
     try:
         layers = _layers_from_args(args)

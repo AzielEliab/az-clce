@@ -66,7 +66,7 @@ def _fail(name: str, detail: str) -> Check:
 
 
 def _check_version() -> Check:
-    if __version__ == ENGINE_VERSION == "0.2.0":
+    if __version__ == ENGINE_VERSION == "0.3.0":
         return _ok("version", __version__)
     return _fail("version", f"{__version__} vs engine {ENGINE_VERSION}")
 
@@ -187,6 +187,58 @@ def _check_no_telemetry() -> Check:
     return _ok("no telemetry", "stdlib only, no analytics")
 
 
+def _check_spre() -> Check:
+    from spre.engine import score as spre_score
+    from spre.training import NEGATIVE_CONTROLS
+
+    official_only = spre_score(
+        {
+            "official": "The office says the matter is closed and the official story is complete.",
+            "internal": "",
+            "physics": "",
+            "evidence": ["The office says the matter is closed and the official story is complete."],
+        }
+    )
+    if "official_narrative_only" not in official_only.flags:
+        return _fail("spre official-only", "missing official_narrative_only flag")
+    if official_only.e > 0.25:
+        return _fail("spre official-only", f"E too high ({official_only.e})")
+    if official_only.asserts_guilt if hasattr(official_only, "asserts_guilt") else False:
+        return _fail("spre official-only", "asserted guilt")
+    blob = json.dumps(official_only.to_dict()).lower()
+    if official_only.to_dict().get("asserts_guilt") or official_only.to_dict().get(
+        "asserts_conspiracy"
+    ):
+        return _fail("spre official-only", "guilt/conspiracy asserted")
+    if "not evidence" not in official_only.limitation.lower() and "not evidence" not in blob:
+        return _fail("spre official-only", "limitation missing official-is-not-evidence")
+    neg = spre_score(NEGATIVE_CONTROLS[0])
+    if neg.ssi >= 0.35:
+        return _fail("spre negative control", f"SSI too high ({neg.ssi})")
+    return _ok("spre", f"E={official_only.e:.2f} neg_ssi={neg.ssi:.2f}")
+
+
+def _check_transfer() -> Check:
+    from clce.transfer import verify_transfer
+
+    root = Path(__file__).resolve().parents[1]
+    sample = root / "examples" / "layers.json"
+    if not sample.is_file():
+        return _fail("transfer", "examples/layers.json missing")
+    with tempfile.TemporaryDirectory() as tmp:
+        report = verify_transfer(
+            path=sample,
+            queue=True,
+            queue_path=Path(tmp) / "q.jsonl",
+            probe_central=False,
+        )
+    if not report.get("ok"):
+        return _fail("transfer", str(report.get("error") or report.get("manifest_issues")))
+    if not report.get("rescore", {}).get("clce"):
+        return _fail("transfer", "CLCE rescore missing")
+    return _ok("transfer", report.get("package_sha256", "")[:12] + "…")
+
+
 CHECKS: tuple[Callable[[], Check], ...] = (
     _check_version,
     _check_empty,
@@ -198,6 +250,8 @@ CHECKS: tuple[Callable[[], Check], ...] = (
     _check_web,
     _check_debug,
     _check_no_telemetry,
+    _check_spre,
+    _check_transfer,
 )
 
 

@@ -4,7 +4,7 @@
 set -euo pipefail
 
 HOST="${CLCE_HOME_HOST:-https://azclce-download-tracker.vibelock.workers.dev}"
-ASSET="${CLCE_HOME_ASSET:-az-clce-0.2.0.tar.gz}"
+ASSET="${CLCE_HOME_ASSET:-az-clce-0.3.0.tar.gz}"
 WORKDIR="${CLCE_HOME:-$HOME/az-clce}"
 
 mkdir -p "$WORKDIR"

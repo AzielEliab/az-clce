@@ -22,8 +22,8 @@ from clce.engine import (
     debug,
 )
 
-SCHEMA_REPORT = "az-clce.report.v0.2"
-SCHEMA_RECEIPT = "az-clce.receipt.v0.2"
+SCHEMA_REPORT = "az-clce.report.v0.3"
+SCHEMA_RECEIPT = "az-clce.receipt.v0.3"
 
 _LAYER_ALIASES = {
     "r": "r",

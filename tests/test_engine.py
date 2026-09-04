@@ -84,7 +84,7 @@ def test_kid_plain_and_input_sha256() -> None:
     report = score(**PERFECT)
     assert "stories match" in report.kid_plain.lower() or "same words" in report.kid_plain.lower()
     assert len(report.input_sha256) == 64
-    assert report.version == "0.2.0"
+    assert report.version == "0.3.0"
 
 
 def test_oversized_field_rejected() -> None:

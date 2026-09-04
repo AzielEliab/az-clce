@@ -25,7 +25,7 @@ export const TYPE_NOTES = {
 
 
 export const MAX_FIELD_CHARS = 64 * 1024;
-export const ENGINE_VERSION = "0.2.0";
+export const ENGINE_VERSION = "0.3.0";
 
 export const KID_PLAIN_BAND = {
   perfect: "These three stories match. What it looks like, what they wrote, and what it actually does use the same words.",
@@ -66,7 +66,7 @@ function kidPlainText(bandName, types) {
 export const LIMITATION =
   "CLCE detects inconsistency, not intent. Type D is a label, not a finding of malice. Human validation required. Not a cybersecurity exploit, not a scanner of other people's systems, not a lie detector. Advisory scores only. Threshold 0.7 is the paper's acceptable line, not a pass/fail of truth.";
 
-function tokenize(text) {
+export function tokenize(text) {
   if (text == null) return new Set();
   const src = typeof text === "string" ? text : Array.isArray(text) ? text.join(" ") : String(text);
   const out = new Set();
@@ -93,7 +93,11 @@ function tokensFrom(value) {
   return tokenize(value);
 }
 
-function jaccard(...groups) {
+export function jaccardTokens(a, b) {
+  return jaccard(a, b);
+}
+
+export function jaccard(...groups) {
   const sets = groups.map((g) => (g instanceof Set ? g : new Set(g || [])));
   if (!sets.some((s) => s.size)) return 1.0;
   const union = new Set();
@@ -203,7 +207,7 @@ export function score(r = "", d = "", p = "", n = "") {
     type_notes,
     kid_plain: kidPlainText(band(triple), types),
     kid_plain_types: Object.fromEntries(types.filter((c) => KID_PLAIN_TYPES[c]).map((c) => [c, KID_PLAIN_TYPES[c]])),
-    schema: "az-clce.report.v0.2",
+    schema: "az-clce.report.v0.3",
     version: ENGINE_VERSION,
     limitation: LIMITATION,
     threshold: THRESHOLD,

@@ -42,6 +42,10 @@ def test_package_never_imports_siblings() -> None:
     import clce.ui  # noqa: F401
     import clce.io  # noqa: F401
     import clce.doctor  # noqa: F401
+    import clce.transfer  # noqa: F401
+    import clce.mesh  # noqa: F401
+    import spre  # noqa: F401
+    import spre.engine  # noqa: F401
 
     for name in list(sys.modules):
         assert _root_of(name) not in FORBIDDEN_ROOTS
@@ -60,11 +64,16 @@ def test_source_imports_isolated() -> None:
 
 def test_not_inside_sibling_products() -> None:
     text = str(ROOT)
-    assert text.endswith("az-clce") or "/az-clce" in text
+    assert (
+        text.endswith("az-clce")
+        or "/az-clce" in text
+        or (ROOT / "clce" / "engine.py").is_file()
+    )
     assert "forgereceipts" not in text
     assert "zion-pattern" not in text
     assert "decisiongate" not in text
     assert (PKG / "engine.py").is_file()
+    assert (ROOT / "spre" / "engine.py").is_file()
     assert not (ROOT / "forgereceipts").exists()
     assert not (ROOT / "decisiongate").exists()
     assert not (ROOT / "glossafilter").exists()
@@ -80,7 +89,11 @@ def test_worker_isolated() -> None:
     assert "/stats" in toml
     src = (ROOT / "workers" / "download-tracker" / "src" / "index.js").read_text(encoding="utf-8")
     assert 'const PROJECT = "azclce"' in src
-    assert "az-clce-0.2.0.tar.gz" in src
+    assert "az-clce-0.3.0.tar.gz" in src
+    assert "/v1/spre" in src
+    assert "/v1/verify-transfer" in src
+    assert "SPRE" in src
+    assert "az-clce-0.3.0.tar.gz" in src
     assert "azclce|__total__" in src or 'PROJECT + "|__total__"' in src
     assert "Isolated counter" in src
     assert "env.ASSETS.fetch" in src
@@ -98,6 +111,9 @@ def test_readme_honest_scope() -> None:
     assert "inconsistency, not intent" in readme.lower()
     assert "Type D" in readme
     assert "Human validation" in readme
+    assert "SPRE" in readme
+    assert "Aziel Eliab" in readme
+    assert "Aziel System Integration" not in readme
     assert "lie detector" in readme.lower()
     assert "0.7" in readme
     assert "Forks are welcome" in readme

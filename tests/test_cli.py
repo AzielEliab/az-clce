@@ -12,7 +12,7 @@ from tests.fixtures import BELOW, PERFECT, TYPE_A, TYPE_B, TYPE_D
 def test_cli_version(capsys) -> None:
     assert main(["version"]) == 0
     assert capsys.readouterr().out.strip() == f"clce {__version__}"
-    assert __version__ == "0.2.0"
+    assert __version__ == "0.3.0"
 
 
 def test_cli_help_lists_ui_and_version() -> None:
@@ -36,6 +36,7 @@ def test_help_text_contains_ui_and_version(capsys) -> None:
     assert "classify" in out
     assert "gate" in out
     assert "doctor" in out
+    assert "verify-transfer" in out
 
 
 def test_cli_score_json(capsys) -> None:

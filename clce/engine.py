@@ -36,7 +36,7 @@ HIGH_N_RATIO = 0.5
 MAX_FIELD_CHARS = 64 * 1024
 MAX_BODY_BYTES = 256 * 1024
 
-ENGINE_VERSION = "0.2.0"
+ENGINE_VERSION = "0.3.0"
 
 # Most severe first. Prefer the most severe matching type; include all.
 SEVERITY = ("D", "C", "B", "A")
@@ -211,7 +211,7 @@ class Report:
         labels = {code: TYPE_LABELS[code] for code in self.types}
         kid_types = {code: KID_PLAIN_TYPES[code] for code in self.types if code in KID_PLAIN_TYPES}
         return {
-            "schema": "az-clce.report.v0.2",
+            "schema": "az-clce.report.v0.3",
             "version": self.version,
             "r": self.r,
             "d": self.d,

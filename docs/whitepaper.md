@@ -9,9 +9,11 @@ License: Apache-2.0
 > CLCE detects inconsistency, not intent. Type D is a label, not a finding of malice.
 
 This document is the specification implemented by the `az-clce` Python
-package (CLI `clce`), version 0.2.0. Source papers in `docs/source/`
-were authored as Aziel System Integration, 2026, and are shipped here as
-**Aziel Eliab**. Forks are welcome and always allowed.
+package (CLI `clce` / `spre`), version 0.3.0. Source papers in `docs/source/`
+are shipped here as **Aziel Eliab**. Forks are welcome and always allowed.
+
+SPRE (see [spre.md](spre.md)) is a sibling scorer: structural similarity
+only. Official narrative is not evidence. Never guilt.
 
 This product is standalone. It is not ForgeReceipts. It is not
 ZionPattern Solver. It is not DecisionGATE. It is not AZ-OS. It is not

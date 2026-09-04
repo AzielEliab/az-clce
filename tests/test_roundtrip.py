@@ -70,4 +70,4 @@ def test_receipt_contains_limitation_and_kid_plain() -> None:
     assert report.input_sha256 in txt
     payload = json.loads(json_text)
     assert payload["input_sha256"] == report.input_sha256
-    assert payload["schema"] == "az-clce.report.v0.2"
+    assert payload["schema"] == "az-clce.report.v0.3"

@@ -39,6 +39,7 @@ Python 3.10+. Core is stdlib only (`dataclasses`, `json`, `http.server`,
 
 - Token sets / Jaccard / CLCE+ / types: `clce/engine.py`
 - SPRE: `spre/engine.py` (training = confirmed failures only)
+- Triad merge fields: `clce/triad.py` (PhysLing slot for aziel-corpus)
 - Transfer verify / mesh: `clce/transfer.py`, `clce/mesh.py`
 - CLI: `clce/cli.py`, `spre/cli.py` (`verify-transfer`)
 - Import/export: `clce/io.py`

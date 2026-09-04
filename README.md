@@ -89,6 +89,7 @@ Transfer verify: `clce verify-transfer PATH` and `spre verify-transfer PATH`.
 ## Honest scope
 
 - CLCE detects **inconsistency, not intent**. Type D is a label, not a finding of malice.
+- SPRE and CLCE are two of three Aziel triad verifiers. PhysLing lives in aziel-corpus. Merge fields are 0–1 (`score_100` is 0–100).
 - SPRE scores **structural similarity** to historically confirmed failures. Never guilt or conspiracy.
 - Official narrative is **not evidence**. Official-only stories lower E and raise poison-suspicion flags.
 - Human validation required.
@@ -144,7 +145,9 @@ clce score --import layers.json --export report.json
 clce classify --r ... --d ... --p ... [--n ...]
 clce gate --min 0.7 --r ... --d ... --p ...      # exit 0 if triple ≥ min else 1
 clce verify-transfer PATH                        # structure + SPRE/CLCE rescore JSON
+clce verify-transfer older_payloads/ --backfill --ndjson
 spre score --official "..." --physics "..." --json
+spre score older_payloads/ --ndjson              # batch/backfill directory
 spre verify-transfer PATH
 ```
 
@@ -235,6 +238,7 @@ clce/web/             loopback UI
 tests/                pytest
 docs/whitepaper.md    spec
 docs/spre.md          SPRE framework
+docs/triad.md         SPRE + CLCE + PhysLing compositing (PhysLing in aziel-corpus)
 docs/node-mesh.md     AzielTether hooks (not a VPN)
 docs/ingest-hooks.md  upload/download verify + Worker ingest
 docs/source/          v1.0 TXT and v2.0 PDF
@@ -251,7 +255,8 @@ finding of malice. Threshold 0.7 is advisory.
 - `POST https://azclce-download-tracker.vibelock.workers.dev/v1/classify` `{r,d,p,n}`
 - `POST https://azclce-download-tracker.vibelock.workers.dev/v1/gate` `{r,d,p,n,min}`
 - `POST https://azclce-download-tracker.vibelock.workers.dev/v1/spre` SPRE case JSON
-- `POST https://azclce-download-tracker.vibelock.workers.dev/v1/verify-transfer` ingest hook
+- `POST https://azclce-download-tracker.vibelock.workers.dev/v1/verify-transfer` ingest hook (emits triad)
+- `GET https://azclce-download-tracker.vibelock.workers.dev/v1/triad` component score schema (0–1 / 0–100)
 - OpenAPI 3.1: https://azclce-download-tracker.vibelock.workers.dev/openapi.json
 - Help: https://azclce-download-tracker.vibelock.workers.dev/ai
 

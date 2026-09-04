@@ -92,6 +92,7 @@ def test_worker_isolated() -> None:
     assert "az-clce-0.3.0.tar.gz" in src
     assert "/v1/spre" in src
     assert "/v1/verify-transfer" in src
+    assert "/v1/triad" in src
     assert "SPRE" in src
     assert "az-clce-0.3.0.tar.gz" in src
     assert "azclce|__total__" in src or 'PROJECT + "|__total__"' in src

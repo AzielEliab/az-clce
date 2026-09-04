@@ -19,6 +19,9 @@ def test_verify_layers_json(tmp_path) -> None:
     assert report["schema"] == "az-clce.transfer.v0.3"
     assert report["author"] == "Aziel Eliab"
     assert report["rescore"]["clce"]["triple"] == 1.0
+    assert report["triad"]["components"]["clce"]["score"] == 1.0
+    assert report["triad"]["components"]["physling"]["home"] == "aziel-corpus"
+    assert report["triad"]["final"]["ready"] is False
     assert report["tether"]["queued"] is True
     assert report["asserts_guilt"] is False
 

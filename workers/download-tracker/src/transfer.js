@@ -5,6 +5,7 @@
  */
 import * as engine from "./engine.js";
 import * as spre from "./spre.js";
+import * as triad from "./triad.js";
 
 export const SCHEMA_TRANSFER = "az-clce.transfer.v0.3";
 export const MAX_FILES = 32;
@@ -135,6 +136,10 @@ export async function verifyTransfer(body) {
     if (scored.clce) clceScores.push(scored.clce);
     if (scored.spre) spreScores.push(scored.spre);
     const digest = await sha256Hex(text);
+    const rowTriad = triad.assemble({
+      clce: triad.clceFromMapping(scored.clce),
+      spre: triad.spreFromMapping(scored.spre),
+    });
     rows.push({
       name,
       size: structure.size,
@@ -144,10 +149,15 @@ export async function verifyTransfer(body) {
       issues: structure.issues,
       ok: structure.ok,
       rescore: { clce: scored.clce, spre: scored.spre, notes: scored.notes },
+      triad: rowTriad,
     });
   }
   const packageSha = await sha256Hex(rows.map((r) => r.sha256).sort().join(""));
   const ok = rows.every((r) => r.ok);
+  const packageTriad = triad.assemble({
+    clce: triad.meanComponent("clce", clceScores.map((s) => triad.clceFromMapping(s))),
+    spre: triad.meanComponent("spre", spreScores.map((s) => triad.spreFromMapping(s))),
+  });
   return {
     schema: SCHEMA_TRANSFER,
     version: engine.ENGINE_VERSION,
@@ -157,6 +167,8 @@ export async function verifyTransfer(body) {
     file_count: rows.length,
     package_sha256: packageSha,
     files: rows,
+    triad: packageTriad,
+    triad_schema: triad.schemaDoc(),
     rescore: {
       clce_count: clceScores.length,
       spre_count: spreScores.length,

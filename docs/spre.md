@@ -53,6 +53,10 @@ spre verify-transfer PATH
 Hosted: `POST /v1/spre` on the AZ-CLCE Worker. Synthetic example:
 `GET /v1/spre/example` — not a real case.
 
+Triad merge field: `triad_component.score = 1 − PC` on [0, 1]
+(`score_100` is 0–100). PhysLing lives in aziel-corpus. See
+[triad.md](triad.md).
+
 ## Honest banner
 
 THIS IS: a structural-similarity engine over confirmed failure-shapes.

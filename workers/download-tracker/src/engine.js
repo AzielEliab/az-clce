@@ -5,6 +5,7 @@
  * finding of malice. Advisory scores only. Threshold 0.7 is the paper's
  * acceptable line, not a pass/fail of truth.
  */
+import { clceComponent } from "./triad.js";
 export const THRESHOLD = 0.7;
 export const VERY_LOW = 0.3;
 export const HIGH_N_RATIO = 0.5;
@@ -212,6 +213,7 @@ export function score(r = "", d = "", p = "", n = "") {
     limitation: LIMITATION,
     threshold: THRESHOLD,
     advisory: true,
+    triad_component: clceComponent(triple, { plus, pairwise_avg: avg, band: band(triple) }),
   };
 }
 

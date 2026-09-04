@@ -119,6 +119,23 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Do not append a tether-queue item.",
     )
+    p_vt.add_argument(
+        "--backfill",
+        action="store_true",
+        help="Batch-score older payloads in a directory or archive for triad merge.",
+    )
+    p_vt.add_argument(
+        "--ndjson",
+        action="store_true",
+        help="Emit one triad record per file (for corpus backfill).",
+    )
+    p_vt.add_argument(
+        "--out",
+        dest="out_path",
+        default=None,
+        metavar="FILE",
+        help="Write JSON or NDJSON to FILE instead of stdout.",
+    )
 
     return parser
 
@@ -196,18 +213,32 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     if args.cmd == "verify-transfer":
-        from clce.transfer import verify_transfer
+        from clce.transfer import file_records, verify_transfer
 
         try:
             report = verify_transfer(
                 path=args.path,
                 direction=args.direction,
                 queue=not args.no_queue,
+                backfill=args.backfill,
             )
         except (OSError, ValueError) as exc:
             print(f"verify-transfer error: {exc}", file=sys.stderr)
             return 2
-        print(json.dumps(report, indent=2, ensure_ascii=False))
+        if args.ndjson or args.backfill:
+            lines = [json.dumps(rec, ensure_ascii=False) for rec in file_records(report)]
+            if not args.ndjson:
+                text = json.dumps(report, indent=2, ensure_ascii=False) + "\n"
+            else:
+                text = "\n".join(lines) + ("\n" if lines else "")
+        else:
+            text = json.dumps(report, indent=2, ensure_ascii=False) + "\n"
+        if args.out_path:
+            from pathlib import Path
+
+            Path(args.out_path).write_text(text, encoding="utf-8")
+        else:
+            sys.stdout.write(text if text.endswith("\n") else text + "\n")
         return 0 if report.get("ok") else 1
 
     try:

@@ -56,12 +56,35 @@ def _build_parser() -> argparse.ArgumentParser:
         default=[],
         help="Missing or destroyed item (repeatable).",
     )
+    p_score.add_argument(
+        "path",
+        nargs="?",
+        default=None,
+        help="Case JSON file or directory of older payloads (batch/backfill).",
+    )
     p_score.add_argument("--import", dest="import_path", default=None, metavar="FILE")
     p_score.add_argument(
         "--json",
         action="store_true",
         dest="as_json",
         help="Print the full report as JSON.",
+    )
+    p_score.add_argument(
+        "--ndjson",
+        action="store_true",
+        help="One JSON object per file when scoring a directory.",
+    )
+    p_score.add_argument(
+        "--backfill",
+        action="store_true",
+        help="Treat PATH as a directory of older payloads; emit triad records.",
+    )
+    p_score.add_argument(
+        "--out",
+        dest="out_path",
+        default=None,
+        metavar="FILE",
+        help="Write JSON or NDJSON to FILE.",
     )
 
     p_vt = sub.add_parser(
@@ -78,6 +101,23 @@ def _build_parser() -> argparse.ArgumentParser:
         "--no-queue",
         action="store_true",
         help="Do not append a tether-queue item.",
+    )
+    p_vt.add_argument(
+        "--backfill",
+        action="store_true",
+        help="Batch-score older payloads in a directory or archive for triad merge.",
+    )
+    p_vt.add_argument(
+        "--ndjson",
+        action="store_true",
+        help="Emit one triad record per file (for corpus backfill).",
+    )
+    p_vt.add_argument(
+        "--out",
+        dest="out_path",
+        default=None,
+        metavar="FILE",
+        help="Write JSON or NDJSON to FILE.",
     )
     return parser
 
@@ -122,6 +162,34 @@ def main(argv: Sequence[str] | None = None) -> int:
             "evidence": list(args.evidence or []),
             "destroyed": list(args.destroyed or []),
         }
+        batch_path = args.path or args.import_path
+        if batch_path and Path(batch_path).is_dir():
+            from clce.transfer import file_records, verify_transfer
+
+            try:
+                packed = verify_transfer(
+                    path=batch_path,
+                    queue=False,
+                    backfill=True,
+                )
+            except (OSError, ValueError) as exc:
+                print(f"score error: {exc}", file=sys.stderr)
+                return 2
+            records = file_records(packed)
+            if args.ndjson or args.backfill:
+                text = "\n".join(json.dumps(rec, ensure_ascii=False) for rec in records)
+                text = text + ("\n" if text else "")
+            else:
+                text = json.dumps(
+                    {"author": "Aziel Eliab", "count": len(records), "records": records, "triad": packed.get("triad")},
+                    indent=2,
+                    ensure_ascii=False,
+                ) + "\n"
+            if args.out_path:
+                Path(args.out_path).write_text(text, encoding="utf-8")
+            else:
+                sys.stdout.write(text)
+            return 0 if packed.get("ok") else 1
         if args.import_path:
             raw = Path(args.import_path).read_text(encoding="utf-8")
             try:
@@ -137,27 +205,53 @@ def main(argv: Sequence[str] | None = None) -> int:
                     continue
                 loaded[key] = value
             payload = loaded
+        elif args.path:
+            raw = Path(args.path).read_text(encoding="utf-8")
+            try:
+                loaded = json.loads(raw)
+            except json.JSONDecodeError as exc:
+                print(f"import error: {exc}", file=sys.stderr)
+                return 2
+            if not isinstance(loaded, dict):
+                print("import error: JSON object required", file=sys.stderr)
+                return 2
+            payload = loaded
         try:
             report = score(payload)
         except ValueError as exc:
             print(f"score error: {exc}", file=sys.stderr)
             return 2
-        _print_score(report, args.as_json)
+        if args.out_path:
+            Path(args.out_path).write_text(
+                json.dumps(report.to_dict(), indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+            return 0
+        _print_score(report, args.as_json or args.ndjson)
         return 0
 
     if args.cmd == "verify-transfer":
-        from clce.transfer import verify_transfer
+        from clce.transfer import file_records, verify_transfer
 
         try:
             report = verify_transfer(
                 path=args.path,
                 direction=args.direction,
                 queue=not args.no_queue,
+                backfill=args.backfill,
             )
         except (OSError, ValueError) as exc:
             print(f"verify-transfer error: {exc}", file=sys.stderr)
             return 2
-        print(json.dumps(report, indent=2, ensure_ascii=False))
+        if args.ndjson:
+            text = "\n".join(json.dumps(rec, ensure_ascii=False) for rec in file_records(report))
+            text = text + ("\n" if text else "")
+        else:
+            text = json.dumps(report, indent=2, ensure_ascii=False) + "\n"
+        if args.out_path:
+            Path(args.out_path).write_text(text, encoding="utf-8")
+        else:
+            sys.stdout.write(text)
         return 0 if report.get("ok") else 1
 
     parser.error(f"unknown command {args.cmd}")

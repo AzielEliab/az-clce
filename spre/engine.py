@@ -567,7 +567,14 @@ class SpreReport:
             "training_set": "historically_confirmed_failures_only",
             "official_narrative_is_evidence": False,
             "clce_type_d": "label_only_not_malice",
+            "triad_component": _triad_component(self),
         }
+
+
+def _triad_component(report: "SpreReport") -> dict:
+    from clce.triad import spre_component
+
+    return spre_component(report.pc, ssi=report.ssi, e=report.e, flags=report.flags)
 
 
 def _raw_patterns(case: Case) -> tuple[dict[str, float], list[str]]:

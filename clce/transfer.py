@@ -23,10 +23,21 @@ from clce.engine import (
 )
 from clce.io import LayerImportError, parse_layers
 from clce.mesh import MESH_NOTE, enqueue_or_note, report_hash
+from clce.triad import (
+    assemble,
+    clce_from_mapping,
+    looks_clce_report,
+    looks_spre_report,
+    mean_component,
+    schema_doc,
+    spre_from_mapping,
+    triad_from_reports,
+)
 
 SCHEMA_TRANSFER = "az-clce.transfer.v0.3"
 SCHEMA_PACKAGE = "az-clce.transfer-package.v0.3"
 MAX_FILES = 256
+MAX_FILES_BACKFILL = 2048
 SKIP_DIR_NAMES = frozenset(
     {".git", ".venv", "__pycache__", "node_modules", ".pytest_cache", ".wrangler"}
 )
@@ -69,15 +80,12 @@ def _looks_spre(obj: dict) -> bool:
         "destroyed",
         "records",
     }
-    return bool(keys & spre_keys) or obj.get("schema") in {
-        "spre.case.v0.3",
-        "spre.report.v0.3",
-    }
+    return bool(keys & spre_keys) or looks_spre_report(obj) or str(obj.get("schema") or "").startswith("spre.")
 
 
 def _looks_clce(obj: dict) -> bool:
     keys = {k.lower() for k in obj}
-    return bool(keys & {"r", "d", "p", "n", "representation", "description", "reality"})
+    return bool(keys & {"r", "d", "p", "n", "representation", "description", "reality"}) or looks_clce_report(obj)
 
 
 def _looks_package(obj: dict) -> bool:
@@ -166,14 +174,32 @@ def _rescore_payload(name: str, data: bytes, structure: dict) -> dict:
             if _looks_clce(obj):
                 try:
                     layers = parse_layers(text)
-                    clce_out = clce_score(**layers).to_dict()
+                    if any(layers.values()):
+                        clce_out = clce_score(**layers).to_dict()
+                    elif looks_clce_report(obj):
+                        clce_out = dict(obj)
+                        notes.append("CLCE backfill from stored report (older payload)")
                 except (LayerImportError, ValueError) as exc:
-                    notes.append(f"CLCE rescore skipped: {exc}")
+                    if looks_clce_report(obj):
+                        clce_out = dict(obj)
+                        notes.append(f"CLCE backfill from stored report: {exc}")
+                    else:
+                        notes.append(f"CLCE rescore skipped: {exc}")
             if _looks_spre(obj):
                 try:
-                    spre_out = spre_score(obj).to_dict()
+                    if looks_spre_report(obj) and not any(
+                        obj.get(k) for k in ("official", "official_narrative", "internal", "physics")
+                    ):
+                        spre_out = dict(obj)
+                        notes.append("SPRE backfill from stored report (older payload)")
+                    else:
+                        spre_out = spre_score(obj).to_dict()
                 except ValueError as exc:
-                    notes.append(f"SPRE rescore skipped: {exc}")
+                    if looks_spre_report(obj):
+                        spre_out = dict(obj)
+                        notes.append(f"SPRE backfill from stored report: {exc}")
+                    else:
+                        notes.append(f"SPRE rescore skipped: {exc}")
             if clce_out is None and spre_out is None:
                 # Unknown JSON: conservative SPRE on dumped text, no CLCE guess.
                 spre_out = score_from_text(text[:MAX_FIELD_CHARS]).to_dict()
@@ -196,7 +222,7 @@ def _rescore_payload(name: str, data: bytes, structure: dict) -> dict:
     return {"clce": clce_out, "spre": spre_out, "notes": notes}
 
 
-def _iter_dir(root: Path) -> list[Path]:
+def _iter_dir(root: Path, *, limit: int = MAX_FILES) -> list[Path]:
     files: list[Path] = []
     for path in sorted(root.rglob("*")):
         if not path.is_file():
@@ -204,12 +230,12 @@ def _iter_dir(root: Path) -> list[Path]:
         if any(part in SKIP_DIR_NAMES for part in path.parts):
             continue
         files.append(path)
-        if len(files) > MAX_FILES:
+        if len(files) >= limit:
             break
     return files
 
 
-def _collect(path: Path) -> list[tuple[str, bytes]]:
+def _collect(path: Path, *, limit: int = MAX_FILES) -> list[tuple[str, bytes]]:
     if path.is_file() and (
         path.name.endswith(".tar.gz") or path.name.endswith(".tgz")
     ):
@@ -223,13 +249,13 @@ def _collect(path: Path) -> list[tuple[str, bytes]]:
                     continue
                 data = extracted.read()
                 out.append((member.name, data))
-                if len(out) >= MAX_FILES:
+                if len(out) >= limit:
                     break
         return out
     if path.is_file():
         return [(path.name, path.read_bytes())]
     if path.is_dir():
-        return [(str(p.relative_to(path)), p.read_bytes()) for p in _iter_dir(path)]
+        return [(str(p.relative_to(path)), p.read_bytes()) for p in _iter_dir(path, limit=limit)]
     raise FileNotFoundError(path)
 
 
@@ -253,6 +279,10 @@ def _manifest_issues(files: list[dict], package_obj: dict | None) -> list[str]:
     return issues
 
 
+def _row_triad(rescore: dict) -> dict:
+    return triad_from_reports(clce=rescore.get("clce"), spre=rescore.get("spre"))
+
+
 def verify_transfer(
     path: str | Path | None = None,
     *,
@@ -261,14 +291,16 @@ def verify_transfer(
     queue: bool = True,
     queue_path: Path | None = None,
     probe_central: bool = False,
+    backfill: bool = False,
 ) -> dict:
     """Verify a path, an in-memory file list, or a Worker ingest body."""
     file_rows: list[dict] = []
     package_obj = None
     collection_error = None
     blobs: list[tuple[str, bytes]] = []
+    file_limit = MAX_FILES_BACKFILL if backfill else MAX_FILES
     if files is not None:
-        for item in files[:MAX_FILES]:
+        for item in files[:file_limit]:
             name = str(item.get("name") or item.get("path") or "unnamed")
             if item.get("text") is not None:
                 data = str(item.get("text")).encode("utf-8")
@@ -281,7 +313,7 @@ def verify_transfer(
             blobs.append((name, data))
     elif path is not None:
         try:
-            blobs = _collect(Path(path))
+            blobs = _collect(Path(path), limit=file_limit)
         except (OSError, tarfile.TarError) as exc:
             collection_error = str(exc)
     else:
@@ -304,7 +336,7 @@ def verify_transfer(
     for name, data in blobs:
         structure = verify_bytes(name, data)
         rescore = _rescore_payload(name, data, structure)
-        row = {**structure, "rescore": rescore}
+        row = {**structure, "rescore": rescore, "triad": _row_triad(rescore)}
         file_rows.append(row)
         if structure.get("kind") == "json" and data:
             try:
@@ -322,6 +354,12 @@ def verify_transfer(
 
     clce_scores = [r["rescore"]["clce"] for r in file_rows if r["rescore"].get("clce")]
     spre_scores = [r["rescore"]["spre"] for r in file_rows if r["rescore"].get("spre")]
+    clce_parts = [clce_from_mapping(s) for s in clce_scores]
+    spre_parts = [spre_from_mapping(s) for s in spre_scores]
+    triad = assemble(
+        clce=mean_component("clce", [p for p in clce_parts if p]),
+        spre=mean_component("spre", [p for p in spre_parts if p]),
+    )
     package_sha = _sha256_bytes(
         "".join(sorted(r["sha256"] for r in file_rows)).encode("utf-8")
     )
@@ -331,10 +369,13 @@ def verify_transfer(
         "author": "Aziel Eliab",
         "direction": direction,
         "ok": structure_ok,
+        "backfill": backfill,
         "file_count": len(file_rows),
         "package_sha256": package_sha,
         "files": file_rows,
         "manifest_issues": manifest_issues,
+        "triad": triad,
+        "triad_schema": schema_doc(),
         "rescore": {
             "clce_count": len(clce_scores),
             "spre_count": len(spre_scores),
@@ -380,3 +421,30 @@ def verify_transfer(
 
 def verify_transfer_path(path: str | Path, **kwargs) -> dict:
     return verify_transfer(path=path, **kwargs)
+
+
+def file_records(report: dict) -> list[dict]:
+    """One triad-bearing record per file for corpus backfill / NDJSON."""
+    out: list[dict] = []
+    for row in report.get("files") or []:
+        rescore = row.get("rescore") or {}
+        out.append(
+            {
+                "schema": "aziel.triad.record.v0.3",
+                "author": "Aziel Eliab",
+                "name": row.get("name"),
+                "sha256": row.get("sha256"),
+                "ok": row.get("ok"),
+                "triad": row.get("triad") or _row_triad(rescore),
+                "clce": rescore.get("clce"),
+                "spre": rescore.get("spre"),
+                "physling": None,
+                "asserts_guilt": False,
+            }
+        )
+    return out
+
+
+def backfill_path(path: str | Path, **kwargs) -> dict:
+    """Score a directory (or archive) of older payloads for triad merge."""
+    return verify_transfer(path=path, backfill=True, **kwargs)

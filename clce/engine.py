@@ -243,7 +243,19 @@ class Report:
             "limitation": self.limitation,
             "threshold": THRESHOLD,
             "advisory": True,
+            "triad_component": _triad_component(self),
         }
+
+
+def _triad_component(report: "Report") -> dict:
+    from clce.triad import clce_component
+
+    return clce_component(
+        report.triple,
+        plus=report.plus,
+        pairwise_avg=report.pairwise_avg,
+        band=report.band,
+    )
 
 
 def band(triple: float) -> str:

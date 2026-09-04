@@ -7,7 +7,7 @@ description: Use when calling AZ-CLCE or SPRE hosted /v1 or installing the local
 
 CLCE detects inconsistency, not intent. Type D is a label, not a finding of malice. SPRE scores structural similarity to historically confirmed failures and never asserts guilt or conspiracy. Official narrative is not evidence. Author: **Aziel Eliab**.
 
-**THIS IS:** a Cross-Layer Consistency Engine (R/D/P Jaccard) plus SPRE (SP(c) = {P1..P5, E, C, T, D}; PC = SSI × E) with transfer verify and AzielTether queue hooks.
+**THIS IS:** a Cross-Layer Consistency Engine (R/D/P Jaccard) plus SPRE (SP(c) = {P1..P5, E, C, T, D}; PC = SSI × E) — two of three Aziel triad verifiers (PhysLing lives in aziel-corpus). Transfer verify and AzielTether queue hooks included.
 
 **THIS IS NOT:** a finding of malice, a guilt or conspiracy verdict, a cybersecurity exploit, a scanner of other people's systems, a truth verdict, or a VPN (not MirageGrid). Hosted `/v1` does not increment downloads or views.
 
@@ -29,6 +29,7 @@ Ops (do **not** increment downloads or views):
 | GET | `/v1/example` | Sample CLCE layers. |
 | GET | `/v1/spre/example` | Synthetic SPRE case. Not a real case. |
 | GET | `/v1/mesh` | AzielTether hook status (no VPN). |
+| GET | `/v1/triad` | Component score schema for corpus merge (0–1 and 0–100). |
 | POST | `/v1/score` | Jaccard triple, pairwise average, CLCE+. Advisory. |
 | POST | `/v1/classify` | Same as score plus mismatch types. Type D is a label only. |
 | POST | `/v1/gate` | Pass iff triple >= min_score. Advisory, not a truth verdict. |
@@ -59,7 +60,9 @@ curl -fsSL https://azclce-download-tracker.vibelock.workers.dev/install.sh | bas
 clce ui
 clce doctor
 clce verify-transfer PATH
+clce verify-transfer older_payloads/ --backfill --ndjson
 spre score --import case.json
+spre score older_payloads/ --ndjson
 spre verify-transfer PATH
 ```
 
@@ -86,3 +89,15 @@ Grok: import catalog or Worker OpenAPI as a custom tool. ChatGPT: GPT Actions. V
 ## Node mesh (AzielTether)
 
 Prefer the central Worker when healthy. Offline, `clce verify-transfer` / `spre verify-transfer` append hash-chained items to `~/.az-clce/tether-queue.jsonl` (scopes `az-clce` and `spre`). AzielTether batches those items and reconciles to central on restore. Not a VPN. Not MirageGrid.
+
+## Triad scores (for aziel-corpus)
+
+SPRE and CLCE emit `triad_component` plus a package `triad` on `verify-transfer`. Unit is **[0, 1]** (`score_100` is the 0–100 twin). PhysLing is an empty slot (`home: aziel-corpus`). Combined `final.score` is the mean of the three **only when all three have verified**. See `docs/triad.md`.
+
+Batch/backfill older payloads:
+
+```bash
+clce verify-transfer older_payloads/ --backfill --ndjson
+spre score older_payloads/ --ndjson
+spre score --import older_payloads/ --backfill
+```

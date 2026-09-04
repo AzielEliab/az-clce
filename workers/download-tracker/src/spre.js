@@ -6,6 +6,7 @@
  * Author: Aziel Eliab.
  */
 import { jaccardTokens, tokenize } from "./engine.js";
+import { spreComponent } from "./triad.js";
 
 export const ENGINE_VERSION = "0.3.0";
 export const SCHEMA_REPORT = "spre.report.v0.3";
@@ -470,6 +471,7 @@ export function score(body) {
     training_set: "historically_confirmed_failures_only",
     official_narrative_is_evidence: false,
     clce_type_d: "label_only_not_malice",
+    triad_component: spreComponent(pc, { ssi, e: sp.e, flags: unique }),
   };
 }
 

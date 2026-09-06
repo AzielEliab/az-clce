@@ -190,6 +190,14 @@ async function collectStats(env) {
   };
 }
 
+/** GET /count contract: {project, views, downloads, total}. Does not increment KV. */
+function countBody(stats) {
+  const views = Number(stats && stats.views) || 0;
+  const downloads = Number(stats && (stats.downloads != null ? stats.downloads : stats.total)) || 0;
+  const total = Number(stats && stats.total) || 0;
+  return { project: PROJECT, views, downloads, total };
+}
+
 
 
 function viewsKey() {
@@ -441,7 +449,14 @@ function openapiSpec(request) {
     },
     servers: [{ url: origin }],
     paths: {
-            "/v1/example": { get: { operationId: "azclceExample", summary: "Sample JSON payload. Does not increment downloads.", responses: { "200": { description: "OK" } } } },
+            "/count": {
+        get: {
+          operationId: "azclce_count",
+          summary: "Isolated counter JSON {project, views, downloads, total}. Does not increment KV.",
+          responses: { "200": { description: "{project, views, downloads, total}" } },
+        },
+      },
+      "/v1/example": { get: { operationId: "azclceExample", summary: "Sample JSON payload. Does not increment downloads.", responses: { "200": { description: "OK" } } } },
       "/v1/health": { get: { operationId: "azclce_health", summary: "Liveness. Does not increment download KV.", responses: { "200": { description: "ok" } } } },
       "/v1/skill": { get: { operationId: "azclce_skill", summary: "Return AZ-CLCE skill markdown. Does not increment downloads or views.", responses: { "200": { description: "text/markdown skill body" } } } },
       "/v1/score": {
@@ -730,9 +745,8 @@ export default {
       });
     }
 
-    if (url.pathname === "/count" && request.method === "GET") {
-      const stats = await collectStats(env);
-      return json({ project: PROJECT, total: stats.total || 0 });
+    if ((url.pathname === "/count" || url.pathname === "/count/") && request.method === "GET") {
+      return json(countBody(await collectStats(env)));
     }
 
     if (url.pathname === "/stats" && request.method === "GET") {

@@ -79,6 +79,17 @@ def test_not_inside_sibling_products() -> None:
     assert not (ROOT / "glossafilter").exists()
 
 
+def test_count_returns_views_downloads_total() -> None:
+    src = (ROOT / "workers" / "download-tracker" / "src" / "index.js").read_text(encoding="utf-8")
+    readme = (ROOT / "workers" / "download-tracker" / "README.md").read_text(encoding="utf-8")
+    assert "function countBody(stats)" in src
+    assert "return { project: PROJECT, views, downloads, total }" in src
+    assert 'url.pathname === "/count"' in src
+    assert "countBody(await collectStats(env))" in src
+    assert "{project, views, downloads, total}" in readme
+    assert "{project, total}" not in readme
+
+
 def test_worker_isolated() -> None:
     toml = (ROOT / "workers" / "download-tracker" / "wrangler.toml").read_text(encoding="utf-8")
     assert 'name = "azclce-download-tracker"' in toml

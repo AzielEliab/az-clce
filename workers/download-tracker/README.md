@@ -41,7 +41,7 @@ the Cloudflare namespace title).
 |--------|------|----------|
 | GET | `/` | Isolated homepage: live count on the download button |
 | GET | `/download?repo=&tag=&asset=` | Increment KV, serve the asset from `ASSETS` |
-| GET | `/count` | JSON `{project, total}` |
+| GET | `/count` | JSON `{project, views, downloads, total}` |
 | GET | `/stats` | JSON totals plus per-repo and per-branch breakdown |
 | POST | `/event` | A fork reports a download |
 

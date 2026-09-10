@@ -99,6 +99,7 @@ Transfer verify: `clce verify-transfer PATH` and `spre verify-transfer PATH`.
 - Loopback UI, no CDN, no telemetry. Size limits on inputs. Empty fields are OK.
 - Standalone from ForgeReceipts, ZionPattern, DecisionGATE, AZ-OS, Glossa Filter, MirageGrid.
 - Not a VPN. AzielTether is a software queue, not MirageGrid.
+- **AZCoherence is a peer Softwares product**, not this engine. Separate product. Do not merge. CLCE is not Coherence. AKM-TRIAD-1.0 stays fabric.
 
 ## What it computes
 
@@ -276,6 +277,13 @@ This Worker OpenAPI: https://azclce-download-tracker.vibelock.workers.dev/openap
 
 Grok: import the catalog or Worker OpenAPI as a custom tool. ChatGPT: GPT Actions (no auth). Venice: HTTP tools. Always send `User-Agent: Mozilla/5.0`.
 
+## Peers (do not merge)
+
+AZ-CLCE and [AZCoherence](https://github.com/AzielEliab/AZCoherence) are **peer Softwares products**, not one engine. Separate product. Do not merge. CLCE is not Coherence.
+
+- [AZCoherence](https://github.com/AzielEliab/AZCoherence) — alternate-triad / second-pass coherence (PASS/FLAG/NEUTRALIZE/REFUSE). Worker: https://azcoherence-download-tracker.vibelock.workers.dev/ · FragGate slug `azcoherence` via [aziel-runtime](https://aziel-runtime.vibelock.workers.dev/) (`POST https://aziel-runtime.vibelock.workers.dev/mcp`)
+- **AKM-TRIAD-1.0** — LIVE fabric memory on [aziel-runtime](https://github.com/AzielEliab/aziel-runtime). Not a Softwares slug. Not AZCoherence.
+
 ## Cite this
 
 Aziel Eliab. AZ-CLCE + SPRE. https://github.com/AzielEliab/az-clce. https://azclce-download-tracker.vibelock.workers.dev.
@@ -285,6 +293,8 @@ Aziel Eliab. AZ-CLCE + SPRE. https://github.com/AzielEliab/az-clce. https://azcl
 - Counted download (gzip HTTP 200, no 302): https://azclce-download-tracker.vibelock.workers.dev/download
 - GitHub: https://github.com/AzielEliab/az-clce
 - Citation JSON: https://azclce-download-tracker.vibelock.workers.dev/cite.json
+- llms.txt: https://azclce-download-tracker.vibelock.workers.dev/llms.txt
+- Peer Softwares product: [AZCoherence](https://github.com/AzielEliab/AZCoherence) (FragGate slug `azcoherence`, separate product)
 
 ## License
 

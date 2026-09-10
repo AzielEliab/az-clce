@@ -1,6 +1,6 @@
 ---
 name: AZ-CLCE
-description: Use when calling AZ-CLCE or SPRE hosted /v1 or installing the local package. Dual surface: Worker /v1 + catalog MCP. This Worker /v1/mesh/* PROXY to aziel-runtime via AZIEL_RUNTIME. Suite mesh default OFF. QNM-BUILD-1.0 live|locked|isolated. QNS-CD-1.0 photon QNS1 packet transfer is a hub cite / Worker mesh cross-map only (no public qnsd proxy). No Node Gate. No auto-heal. Not anonymity. Author Aziel Eliab.
+description: Use when calling AZ-CLCE or SPRE hosted /v1 or installing the local package. Dual surface: Worker /v1 + catalog MCP. This Worker /v1/mesh/* PROXY to aziel-runtime via AZIEL_RUNTIME. Suite mesh default OFF. QNM-BUILD-1.0 live|locked|isolated. QNS-CD-1.0 photon QNS1 packet transfer is a hub cite / Worker mesh cross-map only (no public qnsd proxy). No Node Gate. No auto-heal. Not anonymity. Does not merge AZCoherence (peer Softwares product, FragGate slug azcoherence) or AKM-TRIAD-1.0 fabric. Author Aziel Eliab.
 ---
 
 # AZ-CLCE + SPRE
@@ -86,6 +86,7 @@ Author: **Aziel Eliab**. Honest scope: Jaccard triple / pairwise / CLCE+ plus SP
 - This Worker OpenAPI: https://azclce-download-tracker.vibelock.workers.dev/openapi.json
 - Sample payload: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/example`
 - Suite mesh: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/mesh` PROXY (default OFF; QNS-CD-1.0 cross-map)
+- Peer Softwares product (separate; do not merge): AZCoherence — https://azcoherence-download-tracker.vibelock.workers.dev/ · https://github.com/AzielEliab/AZCoherence · FragGate slug `azcoherence` via aziel-runtime. CLCE is not Coherence. AKM-TRIAD-1.0 stays fabric.
 
 Local UI: **Import JSON file** (`type=file`) and **Export JSON**. Then `clce doctor`. Worker homepage Live Nodes strip polls `GET /v1/mesh` (default OFF).
 
@@ -110,3 +111,14 @@ clce verify-transfer older_payloads/ --backfill --ndjson
 spre score older_payloads/ --ndjson
 spre score --import older_payloads/ --backfill
 ```
+
+## Peers (do not merge)
+
+AZCoherence is a **peer Softwares product**, a separate product — not this engine. Alternate-triad / second-pass coherence (PASS/FLAG/NEUTRALIZE/REFUSE). FragGate slug `azcoherence` via aziel-runtime.
+
+- Worker: https://azcoherence-download-tracker.vibelock.workers.dev/
+- GitHub: https://github.com/AzielEliab/AZCoherence
+- Catalog: https://aziel-runtime.vibelock.workers.dev/p/azcoherence/
+- FragGate: slug `azcoherence` via `POST https://aziel-runtime.vibelock.workers.dev/mcp`
+
+AKM-TRIAD-1.0 is LIVE fabric memory on aziel-runtime — not a Softwares slug. Not AZCoherence. Do not merge engines. CLCE is not Coherence.

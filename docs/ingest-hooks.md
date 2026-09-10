@@ -44,4 +44,5 @@ call `/v1/verify-transfer` as the hook.
 offline node. Zero retention.
 
 See [node-mesh.md](node-mesh.md). Hosted `GET /v1/mesh` is the suite
-Live Nodes PROXY (default OFF), not this AzielTether ingest.
+Live Nodes PROXY (default OFF; QNS-CD-1.0 cross-map), not this
+AzielTether ingest.

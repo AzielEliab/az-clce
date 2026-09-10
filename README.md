@@ -47,7 +47,7 @@ Direct tarball (also counted):
 - Live count JSON: [https://azclce-download-tracker.vibelock.workers.dev/stats](https://azclce-download-tracker.vibelock.workers.dev/stats)
 - OpenAPI: [https://azclce-download-tracker.vibelock.workers.dev/openapi.json](https://azclce-download-tracker.vibelock.workers.dev/openapi.json)
 - Skill: [https://azclce-download-tracker.vibelock.workers.dev/v1/skill](https://azclce-download-tracker.vibelock.workers.dev/v1/skill)
-- Suite mesh proxy: [https://azclce-download-tracker.vibelock.workers.dev/v1/mesh](https://azclce-download-tracker.vibelock.workers.dev/v1/mesh) — default OFF; QNM live / locked / isolated
+- Suite mesh proxy: [https://azclce-download-tracker.vibelock.workers.dev/v1/mesh](https://azclce-download-tracker.vibelock.workers.dev/v1/mesh) — default OFF; QNM live / locked / isolated; QNS-CD-1.0 photon QNS1 packet transfer (hub cite / Worker mesh cross-map only; no public qnsd proxy)
 - One-click install: [https://azclce-download-tracker.vibelock.workers.dev/install.sh](https://azclce-download-tracker.vibelock.workers.dev/install.sh)
 - GitHub: [https://github.com/AzielEliab/az-clce](https://github.com/AzielEliab/az-clce)
 
@@ -264,7 +264,7 @@ finding of malice. Threshold 0.7 is advisory.
 `/v1` does not increment the download counter.
 
 One-URL catalog: https://aziel-runtime.vibelock.workers.dev/openapi.json
-MCP catalog (ships separately): `https://aziel-runtime.vibelock.workers.dev/mcp`. Suite mesh `/v1/mesh/*` PROXY via `AZIEL_RUNTIME` (default OFF; QNM-BUILD-1.0 live|locked|isolated; no Node Gate). Catalog MCP `mesh_*` + FragGate `slug=mesh`.
+MCP catalog (ships separately): `https://aziel-runtime.vibelock.workers.dev/mcp`. Suite mesh `/v1/mesh/*` PROXY via `AZIEL_RUNTIME` (default OFF; QNM-BUILD-1.0 live|locked|isolated; no Node Gate). Catalog MCP `mesh_*` + FragGate `slug=mesh`. QNS-CD-1.0 (photon QNS1 packet transfer) is a hub cite / Worker mesh cross-map only — local qnsd in [qnm-node](https://github.com/AzielEliab/qnm-node); runtime cites in [aziel-runtime](https://github.com/AzielEliab/aziel-runtime); pair custody in [azinterface](https://github.com/AzielEliab/azinterface). Not a Softwares-tab product. No public qnsd proxy.
 
 
 ## Use with Grok / ChatGPT / Venice

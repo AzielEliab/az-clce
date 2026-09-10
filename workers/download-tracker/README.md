@@ -55,7 +55,7 @@ https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.3.
 do not increment KV. See [docs/ingest-hooks.md](../../docs/ingest-hooks.md).
 Not a VPN.
 
-`/v1/mesh/*` PROXY to aziel-runtime suite mesh (`AZIEL_RUNTIME` / `https://aziel-runtime.vibelock.workers.dev`). Default OFF. QNM-BUILD-1.0 live|locked|isolated. No Node Gate. No auto-heal. Not anonymity. Human UI Live Nodes strip polls `GET /v1/mesh`.
+`/v1/mesh/*` PROXY to aziel-runtime suite mesh (`AZIEL_RUNTIME` / `https://aziel-runtime.vibelock.workers.dev`). Default OFF. QNM-BUILD-1.0 live|locked|isolated. QNS-CD-1.0 (photon QNS1 packet transfer) is a hub cite / Worker mesh cross-map only — local qnsd in [qnm-node](https://github.com/AzielEliab/qnm-node); runtime cites in [aziel-runtime](https://github.com/AzielEliab/aziel-runtime). Not a Softwares-tab product. No public qnsd proxy. No Node Gate. No auto-heal. Not anonymity. Human UI Live Nodes strip polls `GET /v1/mesh`.
 
 Verify: `curl -sS -A 'Mozilla/5.0' https://azclce-download-tracker.vibelock.workers.dev/v1/mesh/status` returns MESH-OK style JSON with `enabled: false` by default.
 
@@ -69,7 +69,7 @@ All responses include `Access-Control-Allow-Origin: *`.
 ## AI runtime (`/v1`)
 
 CORS `*`. `GET /v1/health`, `GET /openapi.json` (OpenAPI 3.1), `GET /ai`,
-`GET /v1/mesh` (suite mesh PROXY, default OFF).
+`GET /v1/mesh` (suite mesh PROXY, default OFF; QNS-CD-1.0 cross-map).
 Routes under `/v1` **do not** increment download KV.
 
 Help page: `/ai`. Combined catalog: https://aziel-runtime.vibelock.workers.dev/

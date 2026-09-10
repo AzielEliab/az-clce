@@ -1,6 +1,6 @@
 ---
 name: AZ-CLCE
-description: Use when calling AZ-CLCE or SPRE hosted /v1 or installing the local package. Dual surface: Worker /v1 + catalog MCP. This Worker /v1/mesh/* PROXY to aziel-runtime via AZIEL_RUNTIME. Suite mesh default OFF. QNM-BUILD-1.0 live|locked|isolated. No Node Gate. No auto-heal. Not anonymity. Author Aziel Eliab.
+description: Use when calling AZ-CLCE or SPRE hosted /v1 or installing the local package. Dual surface: Worker /v1 + catalog MCP. This Worker /v1/mesh/* PROXY to aziel-runtime via AZIEL_RUNTIME. Suite mesh default OFF. QNM-BUILD-1.0 live|locked|isolated. QNS-CD-1.0 photon QNS1 packet transfer is a hub cite / Worker mesh cross-map only (no public qnsd proxy). No Node Gate. No auto-heal. Not anonymity. Author Aziel Eliab.
 ---
 
 # AZ-CLCE + SPRE
@@ -19,7 +19,7 @@ Always send `User-Agent: Mozilla/5.0`. Cloudflare Workers may 403 an empty agent
 - Catalog OpenAPI: https://aziel-runtime.vibelock.workers.dev/openapi.json
 - MCP: `POST https://aziel-runtime.vibelock.workers.dev/mcp`
 - Live skill (this markdown): `GET https://azclce-download-tracker.vibelock.workers.dev/v1/skill`
-- Suite mesh: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/mesh` (PROXY; default OFF)
+- Suite mesh: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/mesh` (PROXY; default OFF; QNS-CD-1.0 cross-map)
 
 Ops (do **not** increment downloads or views):
 
@@ -29,7 +29,7 @@ Ops (do **not** increment downloads or views):
 | GET | `/v1/skill` | This markdown. Does not increment downloads. |
 | GET | `/v1/example` | Sample CLCE layers. |
 | GET | `/v1/spre/example` | Synthetic SPRE case. Not a real case. |
-| GET | `/v1/mesh` | PROXY suite mesh status. Default OFF. QNM live|locked|isolated. Never enables. |
+| GET | `/v1/mesh` | PROXY suite mesh status. Default OFF. QNM live|locked|isolated. QNS-CD-1.0 cross-map. Never enables. |
 | GET | `/v1/mesh/nodes` | PROXY Live Nodes roster (5-minute presence). |
 | POST | `/v1/mesh/{enable,disable,join,heartbeat,leave,broadcast}` | PROXY. Bearer required to enable. No auto-heal. Anon-broadcast is not a publish path. |
 | GET | `/v1/triad` | Component score schema for corpus merge (0–1 and 0–100). |
@@ -85,7 +85,7 @@ Author: **Aziel Eliab**. Honest scope: Jaccard triple / pairwise / CLCE+ plus SP
 - This Worker skill: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/skill`
 - This Worker OpenAPI: https://azclce-download-tracker.vibelock.workers.dev/openapi.json
 - Sample payload: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/example`
-- Suite mesh: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/mesh` PROXY (default OFF)
+- Suite mesh: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/mesh` PROXY (default OFF; QNS-CD-1.0 cross-map)
 
 Local UI: **Import JSON file** (`type=file`) and **Export JSON**. Then `clce doctor`. Worker homepage Live Nodes strip polls `GET /v1/mesh` (default OFF).
 
@@ -93,7 +93,7 @@ Grok: import catalog or Worker OpenAPI as a custom tool. ChatGPT: GPT Actions. V
 
 ## Suite mesh (hosted Live Nodes)
 
-Hosted `GET /v1/mesh` and `/v1/mesh/*` PROXY to aziel-runtime (`AZIEL_RUNTIME` / HTTPS fallback). Default OFF. Bearer required to enable. QNM-BUILD-1.0 live|locked|isolated. No Node Gate. No auto-heal. Not anonymity. Catalog MCP `mesh_*` + FragGate `slug=mesh`. This is not AzielTether and not a VPN.
+Hosted `GET /v1/mesh` and `/v1/mesh/*` PROXY to aziel-runtime (`AZIEL_RUNTIME` / HTTPS fallback). Default OFF. Bearer required to enable. QNM-BUILD-1.0 live|locked|isolated. QNS-CD-1.0 (photon QNS1 packet transfer) is a hub cite / Worker mesh cross-map only — local qnsd in https://github.com/AzielEliab/qnm-node; runtime cites in https://github.com/AzielEliab/aziel-runtime; pair custody in https://github.com/AzielEliab/azinterface. Not a Softwares-tab product. No public qnsd proxy. No Node Gate. No auto-heal. Not anonymity. Catalog MCP `mesh_*` + FragGate `slug=mesh`. This is not AzielTether and not a VPN.
 
 ## Node mesh (AzielTether)
 

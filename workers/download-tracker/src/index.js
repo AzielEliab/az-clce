@@ -2,13 +2,14 @@ import * as engine from "./engine.js";
 import * as spre from "./spre.js";
 import * as transfer from "./transfer.js";
 import * as triad from "./triad.js";
+import { handleMeshApi, meshOpenApiPaths, meshPointer } from "./mesh.js";
 const EXAMPLE_PAYLOAD = {
   "r": "login button blue",
   "d": "login form submits",
   "p": "login button submits"
 };
 
-const SKILL_MARKDOWN = "---\nname: AZ-CLCE\ndescription: Use when calling AZ-CLCE or SPRE hosted /v1 or installing the local package. Author Aziel Eliab.\n---\n\n# AZ-CLCE + SPRE\n\nCLCE detects inconsistency, not intent. Type D is a label, not a finding of malice. SPRE scores structural similarity to historically confirmed failures and never asserts guilt or conspiracy. Official narrative is not evidence. Author: **Aziel Eliab**.\n\n**THIS IS:** a Cross-Layer Consistency Engine (R/D/P Jaccard) plus SPRE (SP(c) = {P1..P5, E, C, T, D}; PC = SSI × E) — two of three Aziel triad verifiers (PhysLing lives in aziel-corpus). Transfer verify and AzielTether queue hooks included.\n\n**THIS IS NOT:** a finding of malice, a guilt or conspiracy verdict, a cybersecurity exploit, a scanner of other people's systems, a truth verdict, or a VPN (not MirageGrid). Hosted `/v1` does not increment downloads or views.\n\nAlways send `User-Agent: Mozilla/5.0`. Cloudflare Workers may 403 an empty agent.\n\n## Call these URLs\n\n- Worker OpenAPI: https://azclce-download-tracker.vibelock.workers.dev/openapi.json\n- Catalog OpenAPI: https://aziel-runtime.vibelock.workers.dev/openapi.json\n- MCP: `POST https://aziel-runtime.vibelock.workers.dev/mcp`\n- Live skill (this markdown): `GET https://azclce-download-tracker.vibelock.workers.dev/v1/skill`\n\nOps (do **not** increment downloads or views):\n\n| Method | Path | What |\n|--------|------|------|\n| GET | `/v1/health` | Liveness. Does not increment downloads. |\n| GET | `/v1/skill` | This markdown. Does not increment downloads. |\n| GET | `/v1/example` | Sample CLCE layers. |\n| GET | `/v1/spre/example` | Synthetic SPRE case. Not a real case. |\n| GET | `/v1/mesh` | AzielTether hook status (no VPN). |\n| GET | `/v1/triad` | Component score schema for corpus merge (0–1 and 0–100). |\n| POST | `/v1/score` | Jaccard triple, pairwise average, CLCE+. Advisory. |\n| POST | `/v1/classify` | Same as score plus mismatch types. Type D is a label only. |\n| POST | `/v1/gate` | Pass iff triple >= min_score. Advisory, not a truth verdict. |\n| POST | `/v1/spre` | SPRE score. Structural similarity only. |\n| POST | `/v1/spre/score` | Alias of `/v1/spre`. |\n| POST | `/v1/verify-transfer` | Ingest hook: verify posted files, rescore SPRE + CLCE. |\n| POST | `/v1/tether-ingest` | Accept a hash-chained queue item. Zero retention. |\n\nGrok: import OpenAPI as a custom tool. ChatGPT: GPT Actions. Venice: HTTP tools.\n\n## Example\n\n```bash\ncurl -s -A 'Mozilla/5.0' https://azclce-download-tracker.vibelock.workers.dev/v1/health\ncurl -s -A 'Mozilla/5.0' https://azclce-download-tracker.vibelock.workers.dev/v1/skill\ncurl -s -A 'Mozilla/5.0' -X POST https://azclce-download-tracker.vibelock.workers.dev/v1/score \\\n  -H 'content-type: application/json' \\\n  -d '{\"r\":\"login button blue\",\"d\":\"login form submits\",\"p\":\"login button submits\"}'\ncurl -s -A 'Mozilla/5.0' -X POST https://azclce-download-tracker.vibelock.workers.dev/v1/spre \\\n  -H 'content-type: application/json' \\\n  -d '{\"official\":\"The office says the matter is closed.\",\"physics\":\"Independent chemistry disagrees.\"}'\n```\n\n## Local (after one-click install)\n\n```bash\ncurl -fsSL https://azclce-download-tracker.vibelock.workers.dev/install.sh | bash\nclce ui\nclce doctor\nclce verify-transfer PATH\nclce verify-transfer older_payloads/ --backfill --ndjson\nspre score --import case.json\nspre score older_payloads/ --ndjson\nspre verify-transfer PATH\n```\n\nThen open http://127.0.0.1:8845 (loopback only).\n\nCounted download (gzip HTTP 200, no 302): https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.3.0.tar.gz\nGitHub: https://github.com/AzielEliab/az-clce\n\n## Catalog + local UI\n\nAuthor: **Aziel Eliab**. Honest scope: Jaccard triple / pairwise / CLCE+ plus SPRE structural similarity. Detects inconsistency, not intent. Never guilt.\n\n- Catalog product: https://aziel-runtime.vibelock.workers.dev/p/azclce/\n- Catalog OpenAPI: https://aziel-runtime.vibelock.workers.dev/openapi.json\n- Catalog MCP: `POST https://aziel-runtime.vibelock.workers.dev/mcp`\n- This Worker skill: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/skill`\n- This Worker OpenAPI: https://azclce-download-tracker.vibelock.workers.dev/openapi.json\n- Sample payload: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/example`\n\nLocal UI: **Import JSON file** (`type=file`) and **Export JSON**. Then `clce doctor`.\n\nGrok: import catalog or Worker OpenAPI as a custom tool. ChatGPT: GPT Actions. Venice: HTTP tools.\n\n## Node mesh (AzielTether)\n\nPrefer the central Worker when healthy. Offline, `clce verify-transfer` / `spre verify-transfer` append hash-chained items to `~/.az-clce/tether-queue.jsonl` (scopes `az-clce` and `spre`). AzielTether batches those items and reconciles to central on restore. Not a VPN. Not MirageGrid.\n\n## Triad scores (for aziel-corpus)\n\nSPRE and CLCE emit `triad_component` plus a package `triad` on `verify-transfer`. Unit is **[0, 1]** (`score_100` is the 0–100 twin). PhysLing is an empty slot (`home: aziel-corpus`). Combined `final.score` is the mean of the three **only when all three have verified**. See `docs/triad.md`.\n\nBatch/backfill older payloads:\n\n```bash\nclce verify-transfer older_payloads/ --backfill --ndjson\nspre score older_payloads/ --ndjson\nspre score --import older_payloads/ --backfill\n```\n";
+const SKILL_MARKDOWN = "---\nname: AZ-CLCE\ndescription: Use when calling AZ-CLCE or SPRE hosted /v1 or installing the local package. Dual surface: Worker /v1 + catalog MCP. This Worker /v1/mesh/* PROXY to aziel-runtime via AZIEL_RUNTIME. Suite mesh default OFF. QNM-BUILD-1.0 live|locked|isolated. No Node Gate. No auto-heal. Not anonymity. Author Aziel Eliab.\n---\n\n# AZ-CLCE + SPRE\n\nCLCE detects inconsistency, not intent. Type D is a label, not a finding of malice. SPRE scores structural similarity to historically confirmed failures and never asserts guilt or conspiracy. Official narrative is not evidence. Author: **Aziel Eliab**.\n\n**THIS IS:** a Cross-Layer Consistency Engine (R/D/P Jaccard) plus SPRE (SP(c) = {P1..P5, E, C, T, D}; PC = SSI × E) — two of three Aziel triad verifiers (PhysLing lives in aziel-corpus). Transfer verify and AzielTether queue hooks included.\n\n**THIS IS NOT:** a finding of malice, a guilt or conspiracy verdict, a cybersecurity exploit, a scanner of other people's systems, a truth verdict, or a VPN (not MirageGrid). Hosted `/v1` does not increment downloads or views.\n\nAlways send `User-Agent: Mozilla/5.0`. Cloudflare Workers may 403 an empty agent.\n\n## Call these URLs\n\n- Worker OpenAPI: https://azclce-download-tracker.vibelock.workers.dev/openapi.json\n- Catalog OpenAPI: https://aziel-runtime.vibelock.workers.dev/openapi.json\n- MCP: `POST https://aziel-runtime.vibelock.workers.dev/mcp`\n- Live skill (this markdown): `GET https://azclce-download-tracker.vibelock.workers.dev/v1/skill`\n- Suite mesh: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/mesh` (PROXY; default OFF)\n\nOps (do **not** increment downloads or views):\n\n| Method | Path | What |\n|--------|------|------|\n| GET | `/v1/health` | Liveness. Does not increment downloads. |\n| GET | `/v1/skill` | This markdown. Does not increment downloads. |\n| GET | `/v1/example` | Sample CLCE layers. |\n| GET | `/v1/spre/example` | Synthetic SPRE case. Not a real case. |\n| GET | `/v1/mesh` | PROXY suite mesh status. Default OFF. QNM live|locked|isolated. Never enables. |\n| GET | `/v1/mesh/nodes` | PROXY Live Nodes roster (5-minute presence). |\n| POST | `/v1/mesh/{enable,disable,join,heartbeat,leave,broadcast}` | PROXY. Bearer required to enable. No auto-heal. Anon-broadcast is not a publish path. |\n| GET | `/v1/triad` | Component score schema for corpus merge (0–1 and 0–100). |\n| POST | `/v1/score` | Jaccard triple, pairwise average, CLCE+. Advisory. |\n| POST | `/v1/classify` | Same as score plus mismatch types. Type D is a label only. |\n| POST | `/v1/gate` | Pass iff triple >= min_score. Advisory, not a truth verdict. |\n| POST | `/v1/spre` | SPRE score. Structural similarity only. |\n| POST | `/v1/spre/score` | Alias of `/v1/spre`. |\n| POST | `/v1/verify-transfer` | Ingest hook: verify posted files, rescore SPRE + CLCE. |\n| POST | `/v1/tether-ingest` | Accept a hash-chained queue item. Zero retention. |\n\nGrok: import OpenAPI as a custom tool. ChatGPT: GPT Actions. Venice: HTTP tools.\n\n## Example\n\n```bash\ncurl -s -A 'Mozilla/5.0' https://azclce-download-tracker.vibelock.workers.dev/v1/health\ncurl -s -A 'Mozilla/5.0' https://azclce-download-tracker.vibelock.workers.dev/v1/skill\ncurl -s -A 'Mozilla/5.0' https://azclce-download-tracker.vibelock.workers.dev/v1/mesh\ncurl -s -A 'Mozilla/5.0' -X POST https://azclce-download-tracker.vibelock.workers.dev/v1/score \\\n  -H 'content-type: application/json' \\\n  -d '{\"r\":\"login button blue\",\"d\":\"login form submits\",\"p\":\"login button submits\"}'\ncurl -s -A 'Mozilla/5.0' -X POST https://azclce-download-tracker.vibelock.workers.dev/v1/spre \\\n  -H 'content-type: application/json' \\\n  -d '{\"official\":\"The office says the matter is closed.\",\"physics\":\"Independent chemistry disagrees.\"}'\n```\n\n## Local (after one-click install)\n\n```bash\ncurl -fsSL https://azclce-download-tracker.vibelock.workers.dev/install.sh | bash\nclce ui\nclce doctor\nclce verify-transfer PATH\nclce verify-transfer older_payloads/ --backfill --ndjson\nspre score --import case.json\nspre score older_payloads/ --ndjson\nspre verify-transfer PATH\n```\n\nThen open http://127.0.0.1:8845 (loopback only).\n\nCounted download (gzip HTTP 200, no 302): https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.3.0.tar.gz\nGitHub: https://github.com/AzielEliab/az-clce\n\n## Catalog + local UI\n\nAuthor: **Aziel Eliab**. Honest scope: Jaccard triple / pairwise / CLCE+ plus SPRE structural similarity. Detects inconsistency, not intent. Never guilt.\n\n- Catalog product: https://aziel-runtime.vibelock.workers.dev/p/azclce/\n- Catalog OpenAPI: https://aziel-runtime.vibelock.workers.dev/openapi.json\n- Catalog MCP: `POST https://aziel-runtime.vibelock.workers.dev/mcp`\n- This Worker skill: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/skill`\n- This Worker OpenAPI: https://azclce-download-tracker.vibelock.workers.dev/openapi.json\n- Sample payload: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/example`\n- Suite mesh: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/mesh` PROXY (default OFF)\n\nLocal UI: **Import JSON file** (`type=file`) and **Export JSON**. Then `clce doctor`. Worker homepage Live Nodes strip polls `GET /v1/mesh` (default OFF).\n\nGrok: import catalog or Worker OpenAPI as a custom tool. ChatGPT: GPT Actions. Venice: HTTP tools.\n\n## Suite mesh (hosted Live Nodes)\n\nHosted `GET /v1/mesh` and `/v1/mesh/*` PROXY to aziel-runtime (`AZIEL_RUNTIME` / HTTPS fallback). Default OFF. Bearer required to enable. QNM-BUILD-1.0 live|locked|isolated. No Node Gate. No auto-heal. Not anonymity. Catalog MCP `mesh_*` + FragGate `slug=mesh`. This is not AzielTether and not a VPN.\n\n## Node mesh (AzielTether)\n\nLocal software tether only. Prefer the central Worker when healthy. Offline, `clce verify-transfer` / `spre verify-transfer` append hash-chained items to `~/.az-clce/tether-queue.jsonl` (scopes `az-clce` and `spre`). AzielTether batches those items and reconciles to central on restore via `POST /v1/tether-ingest`. Not a VPN. Not MirageGrid.\n\n## Triad scores (for aziel-corpus)\n\nSPRE and CLCE emit `triad_component` plus a package `triad` on `verify-transfer`. Unit is **[0, 1]** (`score_100` is the 0–100 twin). PhysLing is an empty slot (`home: aziel-corpus`). Combined `final.score` is the mean of the three **only when all three have verified**. See `docs/triad.md`.\n\nBatch/backfill older payloads:\n\n```bash\nclce verify-transfer older_payloads/ --backfill --ndjson\nspre score older_payloads/ --ndjson\nspre score --import older_payloads/ --backfill\n```\n";
 /**
  * AZ-CLCE download tracker (Cloudflare Worker).
  *
@@ -17,6 +18,7 @@ const SKILL_MARKDOWN = "---\nname: AZ-CLCE\ndescription: Use when calling AZ-CLC
  *      (does not 302 to GitHub)
  * GET  /stats   JSON totals + per-repo + per-branch breakdown
  * POST /event   forks report a download {owner,repo,branch,fork,asset}
+ * /v1, /v1/mesh/* do not increment. Suite mesh PROXY via AZIEL_RUNTIME.
  *
  * KV binding DOWNLOADS. Keys: project|owner|repo|branch|fork
  * totalKey() = azclce|__total__
@@ -40,8 +42,8 @@ const INSTALL_LINE = "curl -fsSL https://azclce-download-tracker.vibelock.worker
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "GET, POST, HEAD, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Accept, Authorization, X-Aziel-Runtime-Token, User-Agent",
   };
 }
 
@@ -351,11 +353,33 @@ async function indexHtml(env) {
   .cite h2 { font-size: 1.05rem; margin: 0 0 .4rem; }
   .cite p { color: #c5ccd8; font-size: .95rem; }
   .cite a { color: #c9d4ff; }
+  #meshStrip { border: 1px solid #c9a227; border-radius: 12px; padding: .85rem 1rem; background: #151922; margin: 0 0 1.2rem; display: flex; flex-wrap: wrap; align-items: center; gap: .7rem 1rem; font-size: .88rem; color: #9aa3b2; }
+  #meshStrip .live { color: #e8eaef; }
+  #meshStrip .live b { color: #c9a227; font-size: 1.35rem; margin-right: .35rem; }
+  #meshStrip .rollup b { color: #c9a227; }
+  #meshStrip button { font: 700 .78rem/1 ui-monospace, Menlo, Consolas, monospace; height: 2rem; padding: 0 .75rem; border-radius: 8px; background: #101010; color: #e8eaef; border: 1px solid #c9a227; cursor: pointer; }
+  #meshStrip button:hover { background: #241c0d; color: #c9a227; }
+  #meshStrip input { width: 10rem; padding: .4rem .55rem; border: 1px solid #c9a227; border-radius: 8px; background: #0e0e0e; color: #e8eaef; font: inherit; }
+  #meshProducts { flex-basis: 100%; margin: 0; }
 </style>
 <body>
   <h1>AZ-CLCE</h1>
   <p class="motto">Cross-Layer Consistency Engine + SPRE. Inconsistency, not intent. Never guilt. Author Aziel Eliab.</p>
   <p class="banner">CLCE detects inconsistency, not intent. Type D is a label, not a finding of malice. Human validation required. Author: Aziel Eliab.</p>
+  <div id="meshStrip" aria-label="Suite Live Nodes">
+    <div class="live"><b id="meshLiveCount">0</b> Live Nodes</div>
+    <div id="meshLine">Suite mesh: off (default). QNM-BUILD-1.0. Not an anonymity network.</div>
+    <div class="rollup">live <b id="qnmLive">0</b> · locked <b id="qnmLocked">0</b> · isolated <b id="qnmIsolated">0</b></div>
+    <div>No Node Gate · No auto-heal · Aziel Eliab only</div>
+    <div>
+      <input id="meshBearer" type="text" maxlength="80" placeholder="bearer (required to enable)" aria-label="mesh bearer">
+      <button id="meshEnable" type="button" title="Enable suite mesh. Declared bearer required. Default off.">Enable</button>
+      <button id="meshDisable" type="button" title="Disable suite mesh (always allowed)">Disable</button>
+      <button id="meshJoin" type="button" title="Join as azclce. Refused while mesh is OFF. No auto-join.">Join</button>
+      <button id="meshLeave" type="button" title="Leave this node. No auto-heal.">Leave</button>
+    </div>
+    <p id="meshProducts">Catalog MCP mesh_* · FragGate slug=mesh · /v1/mesh/* PROXY · not AnonBroadcast · not AZMail ring · not a Node Gate</p>
+  </div>
   <div class="card">
     <div class="nums">
       <p class="count">${v}<span>Views</span></p>
@@ -371,7 +395,7 @@ async function indexHtml(env) {
     <p class="meta">The download count ticks on the Download click. The Worker serves the gzip (HTTP 200). No 302 to GitHub. Forks using this same link are counted automatically. ${DEFAULT_ASSET} — ${n} counted.</p>
     <p class="iso">Isolated counter: Worker <code>azclce-download-tracker</code>, project <code>azclce</code>, KV <code>AZCLCE_DOWNLOADS</code>. Not mixed with any other product. /v1 does not increment downloads.</p>
     
-    <p class="meta"><a href="/stats">JSON stats</a> · <a href="/openapi.json">OpenAPI</a> · <a href="/v1/skill">Skill</a> · <a href="/ai">AI runtime</a> · <a href="${GITHUB_REPO}">GitHub</a> · <a href="${GITHUB_LATEST}">releases</a></p>
+    <p class="meta"><a href="/stats">JSON stats</a> · <a href="/openapi.json">OpenAPI</a> · <a href="/v1/mesh">/v1/mesh</a> · <a href="/v1/skill">Skill</a> · <a href="/ai">AI runtime</a> · <a href="${GITHUB_REPO}">GitHub</a> · <a href="${GITHUB_LATEST}">releases</a></p>
     <script>
       (function () {
         var cmd = "curl -fsSL https://azclce-download-tracker.vibelock.workers.dev/install.sh | bash";
@@ -396,6 +420,106 @@ async function indexHtml(env) {
             }
           }
         });
+      })();
+      (function () {
+        function $(id) { return document.getElementById(id); }
+        function meshNum() {
+          for (var i = 0; i < arguments.length; i++) {
+            var raw = arguments[i];
+            if (raw == null || raw === "") continue;
+            var n = typeof raw === "number" ? raw : Number(String(raw).replace(/,/g, ""));
+            if (Number.isFinite(n) && n >= 0) return Math.floor(n);
+          }
+          return 0;
+        }
+        function unwrapMesh(j) {
+          if (!j || typeof j !== "object") return {};
+          if (j.result && typeof j.result === "object") return Object.assign({}, j, j.result);
+          if (j.mesh && typeof j.mesh === "object") return Object.assign({}, j, j.mesh);
+          return j;
+        }
+        function paintMesh(raw) {
+          var j = unwrapMesh(raw);
+          var on = j.enabled === true || j.enabled === 1 || String(j.status || "").toLowerCase() === "on";
+          var r = (j.rollup && typeof j.rollup === "object") ? j.rollup : {};
+          var live = on ? meshNum(r.live, j.live_nodes, j.live) : 0;
+          var locked = on ? meshNum(r.locked, j.locked_nodes, j.locked) : 0;
+          var isolated = on ? meshNum(r.isolated, j.isolated_nodes, j.isolated) : 0;
+          $("meshLiveCount").textContent = String(live);
+          $("qnmLive").textContent = String(live);
+          $("qnmLocked").textContent = String(locked);
+          $("qnmIsolated").textContent = String(isolated);
+          var line = $("meshLine");
+          if (on) line.textContent = "Suite mesh: on · live " + live + " · locked " + locked + " · isolated " + isolated + ". Not an anonymity network.";
+          else if (j.status === "unavailable" || (j.ok === false && j.error)) line.textContent = "Suite mesh: off (unavailable). QNM-BUILD-1.0. Not an anonymity network.";
+          else line.textContent = "Suite mesh: off (default). QNM-BUILD-1.0. Not an anonymity network.";
+          var products = j.products_present || j.products || [];
+          var names = Array.isArray(products) ? products.map(function (p) { return typeof p === "string" ? p : (p && (p.product || p.slug)) || ""; }).filter(Boolean) : [];
+          var nodes = Array.isArray(j.nodes) ? j.nodes : [];
+          var extra = names.length ? " · products " + names.join(", ") : (nodes.length ? " · " + nodes.length + " node labels" : "");
+          $("meshProducts").textContent = "Catalog MCP mesh_* · FragGate slug=mesh · /v1/mesh/* PROXY · not AnonBroadcast · not AZMail ring · not a Node Gate" + extra;
+        }
+        async function meshGet(path) {
+          var r = await fetch(path, { headers: { "user-agent": "Mozilla/5.0", accept: "application/json" } });
+          return r.json();
+        }
+        async function meshPost(path, payload) {
+          var r = await fetch(path, { method: "POST", headers: { "content-type": "application/json", "user-agent": "Mozilla/5.0" }, body: JSON.stringify(payload || {}) });
+          return r.json();
+        }
+        async function refreshMesh() {
+          try {
+            var status = await meshGet("/v1/mesh");
+            var merged = status;
+            var inner = unwrapMesh(status);
+            var on = inner.enabled === true;
+            if (on) {
+              try {
+                var nodes = await meshGet("/v1/mesh/nodes");
+                merged = Object.assign({}, inner, unwrapMesh(nodes));
+              } catch (e) { /* status is enough */ }
+            }
+            paintMesh(merged);
+            var nodeId = sessionStorage.getItem("azclce_mesh_node");
+            if (on && nodeId) {
+              try { await meshPost("/v1/mesh/heartbeat", { node_id: nodeId }); } catch (e) { /* no auto-heal */ }
+            }
+          } catch (e) {
+            paintMesh({ ok: false, enabled: false, status: "unavailable", error: "mesh_unavailable" });
+          }
+        }
+        $("meshEnable").onclick = async function () {
+          var bearer = ($("meshBearer").value || "").trim();
+          paintMesh(await meshPost("/v1/mesh/enable", bearer ? { bearer: bearer } : {}));
+          refreshMesh();
+        };
+        $("meshDisable").onclick = async function () {
+          sessionStorage.removeItem("azclce_mesh_node");
+          paintMesh(await meshPost("/v1/mesh/disable", {}));
+          refreshMesh();
+        };
+        $("meshJoin").onclick = async function () {
+          var j = await meshPost("/v1/mesh/join", { product: "azclce", label: "AZ-CLCE Worker" });
+          var inner = unwrapMesh(j);
+          var id = inner.node_id || inner.id || (inner.session && inner.session.node_id);
+          if (id) sessionStorage.setItem("azclce_mesh_node", String(id));
+          paintMesh(j);
+          refreshMesh();
+        };
+        $("meshLeave").onclick = async function () {
+          var id = sessionStorage.getItem("azclce_mesh_node");
+          if (id) await meshPost("/v1/mesh/leave", { node_id: id });
+          sessionStorage.removeItem("azclce_mesh_node");
+          refreshMesh();
+        };
+        window.addEventListener("pagehide", function () {
+          var id = sessionStorage.getItem("azclce_mesh_node");
+          if (!id || typeof navigator.sendBeacon !== "function") return;
+          try { navigator.sendBeacon("/v1/mesh/leave", new Blob([JSON.stringify({ node_id: id })], { type: "application/json" })); } catch (e) { /* leave expires in 5 minutes */ }
+        });
+        refreshMesh();
+        setInterval(refreshMesh, 30000);
+        document.addEventListener("visibilitychange", function () { if (!document.hidden) refreshMesh(); });
       })();
     </script>
     <h2>Per repo / branch / fork</h2>
@@ -445,7 +569,7 @@ function openapiSpec(request) {
       title: "AZ-CLCE runtime",
       version: "0.3.0",
       summary: "Cross-Layer Consistency Engine + SPRE. Inconsistency, not intent. Never guilt.",
-      description: engine.LIMITATION,
+      description: engine.LIMITATION + " Suite mesh /v1/mesh/* PROXY to aziel-runtime (AZIEL_RUNTIME). Default OFF. QNM-BUILD-1.0 live|locked|isolated. No Node Gate. No auto-heal. Not anonymity. Aziel Eliab only.",
     },
     servers: [{ url: origin }],
     paths: {
@@ -516,7 +640,7 @@ function openapiSpec(request) {
           responses: { "200": { description: "ack" } },
         },
       },
-      "/v1/mesh": { get: { operationId: "azclce_mesh", summary: "AzielTether hook documentation. Not a VPN.", responses: { "200": { description: "ok" } } } },
+      ...meshOpenApiPaths(),
       "/v1/triad": { get: { operationId: "azclce_triad", summary: "Triad component score schema for corpus merge (SPRE + CLCE; PhysLing in aziel-corpus).", responses: { "200": { description: "ok" } } } },
     },
   };
@@ -539,7 +663,8 @@ function aiHelpPage(request) {
 <h1>AZ-CLCE runtime</h1>
 <p class="banner">${engine.LIMITATION}</p>
 <p>OpenAPI: <a href="${origin}/openapi.json">${origin}/openapi.json</a></p>
-<p>Catalog: <a href="https://aziel-runtime.vibelock.workers.dev/">aziel-runtime.vibelock.workers.dev</a></p>
+<p>Catalog: <a href="https://aziel-runtime.vibelock.workers.dev/">aziel-runtime.vibelock.workers.dev</a> (catalog <code>mesh_*</code> + FragGate <code>slug=mesh</code>).</p>
+<p>Suite mesh: <code>GET ${origin}/v1/mesh</code> PROXY to aziel-runtime. Default OFF. QNM-BUILD-1.0 live|locked|isolated. No Node Gate. No auto-heal. Not anonymity. Author: Aziel Eliab only.</p>
 <pre>curl -X POST ${origin}/v1/score -H 'content-type: application/json' \\
   -d '{"r":"login button blue","d":"login form submits","p":"login button submits"}'
 curl -X POST ${origin}/v1/classify -H 'content-type: application/json' \\
@@ -548,7 +673,7 @@ curl -X POST ${origin}/v1/gate -H 'content-type: application/json' \\
   -d '{"r":"a","d":"a","p":"a","min":0.7}'
 </pre>
 <p>GET/POST under <code>/v1</code> never increment the download counter.</p>
-<p><a href="/">Downloads</a></p>
+<p><a href="/openapi.json">openapi.json</a> · <a href="/v1/health">health</a> · <a href="/v1/mesh">/v1/mesh</a> · <a href="/">Downloads</a></p>
 </body></html>`;
 }
 
@@ -566,6 +691,7 @@ function layersFrom(body) {
 
 async function handleRuntime(request, url) {
   const path = url.pathname.replace(/\/+$/, "") || "/";
+  if (path === "/v1/mesh" || path.startsWith("/v1/mesh/")) return null;
   if (path === "/v1/health" && request.method === "GET") {
     return json({
       ok: true, author: "Aziel Eliab",
@@ -577,7 +703,7 @@ async function handleRuntime(request, url) {
       advisory: true,
       version: "0.3.0",
       spre: true,
-      mesh: true,
+      mesh: meshPointer(),
     });
   }
   if ((path === "/v1/example" || path === "/v1/example/") && (request.method === "GET" || request.method === "HEAD")) {
@@ -657,20 +783,6 @@ async function handleRuntime(request, url) {
     });
   }
 
-  if ((path === "/v1/mesh" || path === "/v1/mesh/") && request.method === "GET") {
-    return json({
-      ok: true,
-      author: "Aziel Eliab",
-      prefer_central: true,
-      central_health: HOST + "/v1/health",
-      central_ingest: HOST + "/v1/tether-ingest",
-      scopes: ["az-clce", "spre"],
-      vpn: false,
-      miragegrid: false,
-      note: "Prefer central Worker when healthy. Offline nodes queue hash-chained reports for AzielTether batches. Not a VPN. Not MirageGrid.",
-    });
-  }
-
   if ((path === "/v1/spre" || path === "/v1/spre/" || path === "/v1/spre/score" || path === "/v1/spre/score/") && request.method === "POST") {
     let body;
     try { body = await request.json(); } catch {
@@ -711,7 +823,7 @@ async function handleRuntime(request, url) {
   }
 
   if (path.startsWith("/v1/") || path === "/v1") {
-    return json({ error: "not found", hint: "POST /v1/score /v1/classify /v1/gate /v1/spre /v1/verify-transfer", limitation: engine.LIMITATION }, 404);
+    return json({ error: "not found", hint: "POST /v1/score /v1/classify /v1/gate /v1/spre /v1/verify-transfer GET /v1/mesh", limitation: engine.LIMITATION }, 404);
   }
   return null;
 }
@@ -723,6 +835,9 @@ export default {
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders() });
     }
+
+    const mesh = await handleMeshApi(request, url, env);
+    if (mesh) return mesh;
 
     const runtime = await handleRuntime(request, url);
     if (runtime) return runtime;
@@ -803,7 +918,7 @@ export default {
       });
     }
     if ((url.pathname === "/sitemap.xml" || url.pathname === "/sitemap.xml/") && request.method === "GET") {
-      const locs = [HOST + "/", HOST + "/download", HOST + "/install.sh", HOST + "/v1/skill", HOST + "/openapi.json", GITHUB_REPO];
+      const locs = [HOST + "/", HOST + "/download", HOST + "/install.sh", HOST + "/v1/skill", HOST + "/v1/mesh", HOST + "/openapi.json", GITHUB_REPO];
       const xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         + locs.map((u) => "  <url><loc>" + u + "</loc></url>").join("\n")
         + "\n</urlset>\n";

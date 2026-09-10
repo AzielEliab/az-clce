@@ -5,6 +5,12 @@ Author: **Aziel Eliab**
 AZ-CLCE + SPRE integrate with [AzielTether](https://github.com/AzielEliab/azieltether)
 as a **software tether**, not a network overlay.
 
+Hosted suite Live Nodes are a **different door**: `/v1/mesh/*` PROXY to
+aziel-runtime (`AZIEL_RUNTIME` / HTTPS fallback). Default OFF. Bearer
+required to enable. QNM-BUILD-1.0 public rollup is live|locked|isolated
+counts only. No Node Gate. No auto-heal. Not anonymity. Not AzielTether.
+Not a VPN. Not MirageGrid.
+
 ## Rules
 
 1. **Prefer the central Worker** when `GET /v1/health` is ok
@@ -35,6 +41,7 @@ when a SPRE rescore ran.
 
 ## Hosted
 
-`GET /v1/mesh` documents the hook. `POST /v1/tether-ingest` accepts one
-item, checks the hash fields, and **does not store** the report (zero
-retention). `/v1` never increments download KV.
+Hosted `GET /v1/mesh` is the suite mesh PROXY (Live Nodes / QNM), not
+this AzielTether hook. `POST /v1/tether-ingest` accepts one item, checks
+the hash fields, and **does not store** the report (zero retention).
+`/v1` never increments download KV.

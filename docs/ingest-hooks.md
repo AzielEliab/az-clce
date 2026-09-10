@@ -43,4 +43,5 @@ call `/v1/verify-transfer` as the hook.
 `POST /v1/tether-ingest` accepts a hash-chained queue item from an
 offline node. Zero retention.
 
-See [node-mesh.md](node-mesh.md).
+See [node-mesh.md](node-mesh.md). Hosted `GET /v1/mesh` is the suite
+Live Nodes PROXY (default OFF), not this AzielTether ingest.

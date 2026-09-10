@@ -135,6 +135,12 @@ CLCE detects inconsistency, not intent. Interpretation requires human
 validation. Scores are advisory. The local UI binds loopback only
 (127.0.0.1:8845). No CDN. No telemetry.
 
+The Worker homepage shows a suite Live Nodes strip. `/v1/mesh/*` PROXY
+to aziel-runtime. Suite mesh default OFF. QNM rollup is
+live|locked|isolated counts only. No Node Gate. No auto-heal. Not an
+anonymity network. Anon-broadcast is not a publish path. AZ-CLCE
+remains a Cross-Layer Consistency Engine (inconsistency, not intent).
+
 ## Conclusion
 
 CLCE enables consistent detection of structural misalignment across

@@ -32,7 +32,10 @@ Python 3.10+. Core is stdlib only (`dataclasses`, `json`, `http.server`,
    standalone.
 6. **Do not mix the download tracker** with any other product's Worker or KV.
 7. New behavior needs a test that fails without the change.
-8. Tokenization stays lowercase + split on non-alnum. Jaccard empty-all
+8. **Door vs local op.** `/v1/mesh/*` PROXY to aziel-runtime. Local ops are `/v1/{op}` only.
+   Suite mesh default OFF; QNM rollup live|locked|isolated; no Node Gate;
+   no auto-heal; not anonymity.
+9. Tokenization stays lowercase + split on non-alnum. Jaccard empty-all
    is 1.0.
 
 ## Where to change things
@@ -40,7 +43,8 @@ Python 3.10+. Core is stdlib only (`dataclasses`, `json`, `http.server`,
 - Token sets / Jaccard / CLCE+ / types: `clce/engine.py`
 - SPRE: `spre/engine.py` (training = confirmed failures only)
 - Triad merge fields: `clce/triad.py` (PhysLing slot for aziel-corpus)
-- Transfer verify / mesh: `clce/transfer.py`, `clce/mesh.py`
+- Transfer verify / AzielTether: `clce/transfer.py`, `clce/mesh.py`
+- Suite mesh / QNM Live Nodes: `workers/download-tracker/src/mesh.js` (`/v1/mesh/*` PROXY to aziel-runtime).
 - CLI: `clce/cli.py`, `spre/cli.py` (`verify-transfer`)
 - Import/export: `clce/io.py`
 - Local UI: `clce/ui.py`, `clce/web/`

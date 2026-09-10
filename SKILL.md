@@ -1,6 +1,6 @@
 ---
 name: AZ-CLCE
-description: Use when calling AZ-CLCE or SPRE hosted /v1 or installing the local package. Author Aziel Eliab.
+description: Use when calling AZ-CLCE or SPRE hosted /v1 or installing the local package. Dual surface: Worker /v1 + catalog MCP. This Worker /v1/mesh/* PROXY to aziel-runtime via AZIEL_RUNTIME. Suite mesh default OFF. QNM-BUILD-1.0 live|locked|isolated. No Node Gate. No auto-heal. Not anonymity. Author Aziel Eliab.
 ---
 
 # AZ-CLCE + SPRE
@@ -19,6 +19,7 @@ Always send `User-Agent: Mozilla/5.0`. Cloudflare Workers may 403 an empty agent
 - Catalog OpenAPI: https://aziel-runtime.vibelock.workers.dev/openapi.json
 - MCP: `POST https://aziel-runtime.vibelock.workers.dev/mcp`
 - Live skill (this markdown): `GET https://azclce-download-tracker.vibelock.workers.dev/v1/skill`
+- Suite mesh: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/mesh` (PROXY; default OFF)
 
 Ops (do **not** increment downloads or views):
 
@@ -28,7 +29,9 @@ Ops (do **not** increment downloads or views):
 | GET | `/v1/skill` | This markdown. Does not increment downloads. |
 | GET | `/v1/example` | Sample CLCE layers. |
 | GET | `/v1/spre/example` | Synthetic SPRE case. Not a real case. |
-| GET | `/v1/mesh` | AzielTether hook status (no VPN). |
+| GET | `/v1/mesh` | PROXY suite mesh status. Default OFF. QNM live|locked|isolated. Never enables. |
+| GET | `/v1/mesh/nodes` | PROXY Live Nodes roster (5-minute presence). |
+| POST | `/v1/mesh/{enable,disable,join,heartbeat,leave,broadcast}` | PROXY. Bearer required to enable. No auto-heal. Anon-broadcast is not a publish path. |
 | GET | `/v1/triad` | Component score schema for corpus merge (0–1 and 0–100). |
 | POST | `/v1/score` | Jaccard triple, pairwise average, CLCE+. Advisory. |
 | POST | `/v1/classify` | Same as score plus mismatch types. Type D is a label only. |
@@ -45,6 +48,7 @@ Grok: import OpenAPI as a custom tool. ChatGPT: GPT Actions. Venice: HTTP tools.
 ```bash
 curl -s -A 'Mozilla/5.0' https://azclce-download-tracker.vibelock.workers.dev/v1/health
 curl -s -A 'Mozilla/5.0' https://azclce-download-tracker.vibelock.workers.dev/v1/skill
+curl -s -A 'Mozilla/5.0' https://azclce-download-tracker.vibelock.workers.dev/v1/mesh
 curl -s -A 'Mozilla/5.0' -X POST https://azclce-download-tracker.vibelock.workers.dev/v1/score \
   -H 'content-type: application/json' \
   -d '{"r":"login button blue","d":"login form submits","p":"login button submits"}'
@@ -81,14 +85,19 @@ Author: **Aziel Eliab**. Honest scope: Jaccard triple / pairwise / CLCE+ plus SP
 - This Worker skill: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/skill`
 - This Worker OpenAPI: https://azclce-download-tracker.vibelock.workers.dev/openapi.json
 - Sample payload: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/example`
+- Suite mesh: `GET https://azclce-download-tracker.vibelock.workers.dev/v1/mesh` PROXY (default OFF)
 
-Local UI: **Import JSON file** (`type=file`) and **Export JSON**. Then `clce doctor`.
+Local UI: **Import JSON file** (`type=file`) and **Export JSON**. Then `clce doctor`. Worker homepage Live Nodes strip polls `GET /v1/mesh` (default OFF).
 
 Grok: import catalog or Worker OpenAPI as a custom tool. ChatGPT: GPT Actions. Venice: HTTP tools.
 
+## Suite mesh (hosted Live Nodes)
+
+Hosted `GET /v1/mesh` and `/v1/mesh/*` PROXY to aziel-runtime (`AZIEL_RUNTIME` / HTTPS fallback). Default OFF. Bearer required to enable. QNM-BUILD-1.0 live|locked|isolated. No Node Gate. No auto-heal. Not anonymity. Catalog MCP `mesh_*` + FragGate `slug=mesh`. This is not AzielTether and not a VPN.
+
 ## Node mesh (AzielTether)
 
-Prefer the central Worker when healthy. Offline, `clce verify-transfer` / `spre verify-transfer` append hash-chained items to `~/.az-clce/tether-queue.jsonl` (scopes `az-clce` and `spre`). AzielTether batches those items and reconciles to central on restore. Not a VPN. Not MirageGrid.
+Local software tether only. Prefer the central Worker when healthy. Offline, `clce verify-transfer` / `spre verify-transfer` append hash-chained items to `~/.az-clce/tether-queue.jsonl` (scopes `az-clce` and `spre`). AzielTether batches those items and reconciles to central on restore via `POST /v1/tether-ingest`. Not a VPN. Not MirageGrid.
 
 ## Triad scores (for aziel-corpus)
 

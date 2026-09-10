@@ -47,6 +47,7 @@ Direct tarball (also counted):
 - Live count JSON: [https://azclce-download-tracker.vibelock.workers.dev/stats](https://azclce-download-tracker.vibelock.workers.dev/stats)
 - OpenAPI: [https://azclce-download-tracker.vibelock.workers.dev/openapi.json](https://azclce-download-tracker.vibelock.workers.dev/openapi.json)
 - Skill: [https://azclce-download-tracker.vibelock.workers.dev/v1/skill](https://azclce-download-tracker.vibelock.workers.dev/v1/skill)
+- Suite mesh proxy: [https://azclce-download-tracker.vibelock.workers.dev/v1/mesh](https://azclce-download-tracker.vibelock.workers.dev/v1/mesh) — default OFF; QNM live / locked / isolated
 - One-click install: [https://azclce-download-tracker.vibelock.workers.dev/install.sh](https://azclce-download-tracker.vibelock.workers.dev/install.sh)
 - GitHub: [https://github.com/AzielEliab/az-clce](https://github.com/AzielEliab/az-clce)
 
@@ -239,7 +240,7 @@ tests/                pytest
 docs/whitepaper.md    spec
 docs/spre.md          SPRE framework
 docs/triad.md         SPRE + CLCE + PhysLing compositing (PhysLing in aziel-corpus)
-docs/node-mesh.md     AzielTether hooks (not a VPN)
+docs/node-mesh.md     AzielTether hooks + hosted suite /v1/mesh/* PROXY (not a VPN)
 docs/ingest-hooks.md  upload/download verify + Worker ingest
 docs/source/          v1.0 TXT and v2.0 PDF
 mobile/               Flutter iPhone + Android (`flutter create .`)
@@ -263,6 +264,7 @@ finding of malice. Threshold 0.7 is advisory.
 `/v1` does not increment the download counter.
 
 One-URL catalog: https://aziel-runtime.vibelock.workers.dev/openapi.json
+MCP catalog (ships separately): `https://aziel-runtime.vibelock.workers.dev/mcp`. Suite mesh `/v1/mesh/*` PROXY via `AZIEL_RUNTIME` (default OFF; QNM-BUILD-1.0 live|locked|isolated; no Node Gate). Catalog MCP `mesh_*` + FragGate `slug=mesh`.
 
 
 ## Use with Grok / ChatGPT / Venice

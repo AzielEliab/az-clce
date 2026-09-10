@@ -68,7 +68,8 @@ All responses include `Access-Control-Allow-Origin: *`.
 
 ## AI runtime (`/v1`)
 
-CORS `*`. `GET /v1/health`, `GET /openapi.json` (OpenAPI 3.1), `GET /ai`.
+CORS `*`. `GET /v1/health`, `GET /openapi.json` (OpenAPI 3.1), `GET /ai`,
+`GET /v1/mesh` (suite mesh PROXY, default OFF).
 Routes under `/v1` **do not** increment download KV.
 
 Help page: `/ai`. Combined catalog: https://aziel-runtime.vibelock.workers.dev/

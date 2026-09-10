@@ -33,8 +33,9 @@ Python 3.10+. Core is stdlib only (`dataclasses`, `json`, `http.server`,
 6. **Do not mix the download tracker** with any other product's Worker or KV.
 7. New behavior needs a test that fails without the change.
 8. **Door vs local op.** `/v1/mesh/*` PROXY to aziel-runtime. Local ops are `/v1/{op}` only.
-   Suite mesh default OFF; QNM rollup live|locked|isolated; no Node Gate;
-   no auto-heal; not anonymity.
+   Suite mesh default OFF; QNM rollup live|locked|isolated; QNS-CD-1.0
+   hub cite / Worker mesh cross-map only (no public qnsd proxy); no Node
+   Gate; no auto-heal; not anonymity.
 9. Tokenization stays lowercase + split on non-alnum. Jaccard empty-all
    is 1.0.
 

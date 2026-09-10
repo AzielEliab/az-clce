@@ -14,6 +14,7 @@ WRANGLER = (ROOT / "workers/download-tracker/wrangler.toml").read_text(encoding=
 README = (ROOT / "README.md").read_text(encoding="utf-8")
 SKILL = (ROOT / "SKILL.md").read_text(encoding="utf-8")
 WORKER_README = (ROOT / "workers/download-tracker/README.md").read_text(encoding="utf-8")
+NODE_MESH = (ROOT / "docs/node-mesh.md").read_text(encoding="utf-8")
 
 
 def test_mesh_contract_default_off_qnm_law() -> None:
@@ -107,3 +108,29 @@ def test_docs_advertise_mesh_proxy() -> None:
     assert "Aziel Eliab" in MESH
     assert "decisiongate" not in MESH.lower()
     assert "decisiongate" not in INDEX.lower()
+
+
+def test_qns_cd_cross_map() -> None:
+    assert 'QNS_CD_SPEC = "QNS-CD-1.0"' in MESH
+    assert "export const QNS_CD" in MESH
+    assert "photon QNS1 packet transfer" in MESH
+    assert "https://github.com/AzielEliab/qnm-node" in MESH
+    assert "https://github.com/AzielEliab/aziel-runtime" in MESH
+    assert "https://github.com/AzielEliab/azinterface" in MESH
+    assert "softwares_tab: false" in MESH
+    assert "public_qnsd_proxy: false" in MESH
+    assert "qnsd_here: false" in MESH
+    assert "export function withQnsCd" in MESH
+    assert "qns_cd_spec: QNS_CD_SPEC" in MESH
+    assert "qns_cd: QNS_CD" in MESH
+    assert "QNS-CD-1.0" in MESH
+    assert "QNS-CD-1.0 photon QNS1 packet transfer" in MESH
+    assert "QNS-CD-1.0" in README
+    assert "QNS-CD-1.0" in SKILL
+    assert "QNS-CD-1.0" in WORKER_README
+    assert "QNS-CD-1.0" in NODE_MESH
+    assert "QNS-CD-1.0" in INDEX
+    assert "no public qnsd proxy" in INDEX.lower()
+    assert "/v1/qnsd" not in MESH
+    assert "MESH_DEFAULT_OFF = true" in MESH
+    assert "MESH_NODE_GATE = false" in MESH

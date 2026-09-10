@@ -73,3 +73,7 @@ CORS `*`. `GET /v1/health`, `GET /openapi.json` (OpenAPI 3.1), `GET /ai`,
 Routes under `/v1` **do not** increment download KV.
 
 Help page: `/ai`. Combined catalog: https://aziel-runtime.vibelock.workers.dev/
+
+Peer Softwares product (separate; do not merge): [AZCoherence](https://github.com/AzielEliab/AZCoherence) — Worker https://azcoherence-download-tracker.vibelock.workers.dev/ · FragGate slug `azcoherence` via aziel-runtime. CLCE is not Coherence. AKM-TRIAD-1.0 stays fabric.
+
+`GET /cite.json` and `GET /llms.txt` cite that peer cross-map. Identity: Aziel Eliab only.

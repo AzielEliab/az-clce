@@ -28,8 +28,12 @@ Python 3.10+. Core is stdlib only (`dataclasses`, `json`, `http.server`,
 4. **UI binds loopback only** (`127.0.0.1:8845`). Do not listen on `0.0.0.0`.
    Size limits on fields. No telemetry. Empty fields are OK. `CLCE_DEBUG=1` for traces.
 5. **Do not merge this product into ForgeReceipts, ZionPattern Solver,
-   DecisionGATE, AZ-OS, Glossa Filter, or any *Lock tree.** AZ-CLCE is
-   standalone.
+   DecisionGATE, AZ-OS, Glossa Filter, AZCoherence, or any *Lock tree.**
+   AZ-CLCE is standalone. AZCoherence is a peer Softwares product
+   (separate product; https://azcoherence-download-tracker.vibelock.workers.dev/ ·
+   https://github.com/AzielEliab/AZCoherence · FragGate slug
+   `azcoherence` via aziel-runtime), not this engine.
+   CLCE is not Coherence. AKM-TRIAD-1.0 stays fabric.
 6. **Do not mix the download tracker** with any other product's Worker or KV.
 7. New behavior needs a test that fails without the change.
 8. **Door vs local op.** `/v1/mesh/*` PROXY to aziel-runtime. Local ops are `/v1/{op}` only.

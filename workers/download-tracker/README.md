@@ -77,3 +77,15 @@ Help page: `/ai`. Combined catalog: https://aziel-runtime.vibelock.workers.dev/
 Peer Softwares product (separate; do not merge): [AZCoherence](https://github.com/AzielEliab/AZCoherence) — Worker https://azcoherence-download-tracker.vibelock.workers.dev/ · FragGate slug `azcoherence` via aziel-runtime. CLCE is not Coherence. AKM-TRIAD-1.0 stays fabric.
 
 `GET /cite.json` and `GET /llms.txt` cite that peer cross-map. Identity: Aziel Eliab only.
+
+## Human / bot schema (`/stats` and `/count`)
+
+Additive dual-count (Whitestone canary). Classification lives in `src/classify.js`
+and response shaping in `src/stats-shape.js`.
+
+Invariant: `views === views_human + views_bot` and
+`downloads === downloads_human + downloads_bot`.
+
+Legacy strategy (b): existing KV totals are never reset. Pre-split remainder
+is shown as bot on read (`views_bot = views - views_human`). Author: Aziel Eliab only.
+

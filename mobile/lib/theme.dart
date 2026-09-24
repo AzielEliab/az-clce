@@ -7,6 +7,21 @@ const Color kGold = Color(0xFFC9A227);
 const Color kGoldDim = Color(0xFF8A7219);
 const Color kIvory = Color(0xFFE8E0D0);
 
+ThemeData buildLightTheme() {
+  const scheme = ColorScheme.light(
+    brightness: Brightness.light,
+    primary: Color(0xFF6E5310),
+    onPrimary: Color(0xFFFFFCF7),
+    secondary: kGold,
+    onSecondary: kMatteBlack,
+    surface: Color(0xFFFFFCF7),
+    onSurface: Color(0xFF1C1914),
+    error: Color(0xFF9D2C2C),
+    onError: Color(0xFFFFFCF7),
+  );
+  return _theme(scheme, const Color(0xFFF6F3EC), const Color(0xFF1C1914));
+}
+
 ThemeData buildAppTheme() {
   const scheme = ColorScheme.dark(
     brightness: Brightness.dark,
@@ -19,19 +34,24 @@ ThemeData buildAppTheme() {
     error: Color(0xFFB54A4A),
     onError: kIvory,
   );
+  return _theme(scheme, kMatteBlack, kGold);
+}
+
+ThemeData _theme(ColorScheme scheme, Color scaffold, Color title) {
   return ThemeData(
     useMaterial3: true,
-    brightness: Brightness.dark,
+    brightness: scheme.brightness,
     colorScheme: scheme,
-    scaffoldBackgroundColor: kMatteBlack,
-    appBarTheme: const AppBarTheme(
-      backgroundColor: kMatteBlack,
-      foregroundColor: kGold,
+    scaffoldBackgroundColor: scaffold,
+    focusColor: kGold,
+    appBarTheme: AppBarTheme(
+      backgroundColor: scaffold,
+      foregroundColor: title,
       elevation: 0,
       centerTitle: false,
     ),
     cardTheme: CardThemeData(
-      color: kSurface,
+      color: scheme.surface,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -40,11 +60,13 @@ ThemeData buildAppTheme() {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: const Color(0xFF1A1A1A),
+      fillColor: scheme.brightness == Brightness.dark
+          ? const Color(0xFF1A1A1A)
+          : const Color(0xFFFFFFFF),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: kGold),
+        borderSide: const BorderSide(color: kGold, width: 2),
       ),
     ),
     segmentedButtonTheme: SegmentedButtonThemeData(

@@ -1,24 +1,33 @@
 # AZ-CLCE
 
-**Cross-Layer Consistency Engine.** Detects inconsistency across
-representation (R), description (D), and reality (P). Optional negative
-space N. Jaccard triple, pairwise average (paper §5), and CLCE+.
+Compare what something looks like, what was written, and what it actually does.
 
 **Author:** Aziel Eliab
-**Date:** 2026
-**License:** [Apache-2.0](LICENSE)
 **Version:** 0.3.0
+**License:** [Apache-2.0](LICENSE)
 
-> CLCE detects inconsistency, not intent. Type D is a label, not a finding of malice.
-> SPRE scores structural similarity only. Official narrative is not evidence. Never guilt.
+## Start
 
-See the spec: [docs/whitepaper.md](docs/whitepaper.md). Source papers:
-[docs/source/AZ-CLCE-v2.0.pdf](docs/source/AZ-CLCE-v2.0.pdf),
-[docs/source/AZ-CLCE-v1.0.txt](docs/source/AZ-CLCE-v1.0.txt).
+1. Install
+
+   ```bash
+   python -m venv .venv && source .venv/bin/activate && pip install -e .
+   ```
+
+2. Open the local page
+
+   ```bash
+   clce ui
+   ```
+
+3. Open the address it prints (`http://127.0.0.1:8845/`) and press **Score**.
+
+Check this install with `clce doctor`. List commands with `clce --help`.
+
+See [RUN.txt](RUN.txt). Spec: [docs/whitepaper.md](docs/whitepaper.md).
 How to contribute: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 **Forks are welcome and always allowed.**
-
 
 ## One-click install
 
@@ -26,13 +35,13 @@ How to contribute: [CONTRIBUTING.md](CONTRIBUTING.md).
 curl -fsSL https://azclce-download-tracker.vibelock.workers.dev/install.sh | bash
 ```
 
-The script curls the **counted** tarball from this project's Worker
-(`/download`, User-Agent `Mozilla/5.0`), extracts, makes a venv, and
-`pip install -e .`. Then run `clce ui`.
+The script downloads the counted tarball, extracts it, makes a venv, and
+runs `pip install -e .`. Then:
 
-Or tap **Download** / **One-click install** on the Worker homepage
-(a 6th-grader can tap it):
-https://azclce-download-tracker.vibelock.workers.dev/
+```bash
+source .venv/bin/activate
+clce ui
+```
 
 ## Counted download (Cloudflare Worker)
 
@@ -54,40 +63,7 @@ Direct tarball (also counted):
 Isolated counter: Worker `azclce-download-tracker`, KV `AZCLCE_DOWNLOADS`. Not mixed with any other product. `/v1` does not increment downloads.
 
 
-## Quick start
-
-1. Install
-
-   ```bash
-   python -m venv .venv && source .venv/bin/activate && pip install -e ".[dev]"
-   ```
-
-2. Open the local UI (loopback only, no CDN, no telemetry)
-
-   ```bash
-   clce ui
-   ```
-
-   Then open http://127.0.0.1:8845
-
-3. Fill the four boxes (or click **Fill sample**) and press **Score**.
-
-   Empty boxes are OK. Switch **Simple / Advanced** to see Jaccard and types A–D.
-   Import JSON/txt `{r,d,p,n}`. Export a report JSON plus a human `.txt` receipt
-   with the sha256 of the inputs.
-
-Counted download: [https://azclce-download-tracker.vibelock.workers.dev/](https://azclce-download-tracker.vibelock.workers.dev/)
-
-Direct tarball (also counted): [az-clce-0.3.0.tar.gz](https://azclce-download-tracker.vibelock.workers.dev/download?asset=az-clce-0.3.0.tar.gz)
-
-GitHub: [https://github.com/AzielEliab/az-clce](https://github.com/AzielEliab/az-clce)
-
-Self-check: `clce doctor`. Debug: `CLCE_DEBUG=1 clce score --r "a" --d "a" --p "a"`.
-Transfer verify: `clce verify-transfer PATH` and `spre verify-transfer PATH`.
-
----
-
-## Honest scope
+## Notes
 
 - CLCE detects **inconsistency, not intent**. Type D is a label, not a finding of malice.
 - SPRE and CLCE are two of three Aziel triad verifiers. PhysLing lives in aziel-corpus. Merge fields are 0–1 (`score_100` is 0–100).
@@ -124,7 +100,7 @@ Band: 1.0 perfect; ≥0.7 acceptable; <0.7 structural inconsistency.
 
 The report lists every matching type and prefers the most severe (D > C > B > A) as `primary`.
 
-Kid-plain result (Simple view): a sixth-grade sentence. Advanced view: Jaccard numbers and types A–D.
+The page shows that sentence after Score. Jaccard numbers and types A–D are under Advanced.
 
 ## Install
 
@@ -138,15 +114,20 @@ pip install -e ".[dev]"
 
 ## CLI
 
+People get short text. Programs add `--json` and receive the same report as before.
+
 ```bash
+clce                                             # welcome and next step
+clce --help
 clce version
 clce doctor                                      # self-check, no network
-clce ui                                          # 127.0.0.1:8845 loopback only
+clce ui                                          # prints Open http://127.0.0.1:8845/
 clce score --r "..." --d "..." --p "..." [--n "..."]
-clce score --import layers.json --export report.json
+clce score --json --import layers.json --export report.json
 clce classify --r ... --d ... --p ... [--n ...]
 clce gate --min 0.7 --r ... --d ... --p ...      # exit 0 if triple ≥ min else 1
-clce verify-transfer PATH                        # structure + SPRE/CLCE rescore JSON
+clce verify-transfer PATH                        # short summary
+clce verify-transfer --json PATH                 # full report
 clce verify-transfer older_payloads/ --backfill --ndjson
 spre score --official "..." --physics "..." --json
 spre score older_payloads/ --ndjson              # batch/backfill directory
@@ -176,21 +157,23 @@ ok, report = gate(r="a", d="a", p="a", min_score=0.7)
 
 ## UI
 
-`clce ui` binds **127.0.0.1:8845** only. Four boxes:
+`clce ui` binds **127.0.0.1:8845** only and prints `Open http://127.0.0.1:8845/`.
+Four boxes:
 
 - What it looks like (R)
 - What they wrote (D)
 - What it actually does (P)
 - Missing pieces (N)
 
-Giant Score, kid-plain result, Fill sample, Simple/Advanced (Jaccard, types A–D).
-Import JSON/txt. Export report JSON + human receipt. Limitation banner.
-Self-contained CSS, no CDN, no telemetry. Dark matte / gold.
+Press **Score**. **Try a sample** fills an example. Jaccard numbers, types A–D,
+import, and export sit under **Advanced**. Honest scope sits under **About**.
+Light and dark follow the system. Focus is a gold ring. Usable at 390px.
+Self-contained CSS, no CDN, no telemetry.
 
 ## iPhone & Android
 
 Flutter sources: [`mobile/`](mobile/). Application id `com.azieeliab.azclce`.
-Offline. No analytics. Dark matte / gold.
+Offline. No analytics. Light and dark follow the system. Gold focus.
 
 Four fields with the same kid-plain labels, giant score, sample fill, paste
 import / copy export of JSON + receipt text.

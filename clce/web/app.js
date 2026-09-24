@@ -1,4 +1,4 @@
-/* AZ-CLCE UI. No CDN. No telemetry. Advisory scores only. */
+/* AZ-CLCE local page. No CDN. No telemetry. */
 (function () {
   const form = document.getElementById("clce-form");
   const typesEl = document.getElementById("types");
@@ -7,9 +7,7 @@
   const giant = document.getElementById("giant-score");
   const kid = document.getElementById("kid-plain");
   const shaLine = document.getElementById("sha-line");
-  const advancedPanel = document.getElementById("advanced-panel");
-  const viewSimple = document.getElementById("view-simple");
-  const viewAdvanced = document.getElementById("view-advanced");
+  const advanced = document.getElementById("advanced");
   const importFile = document.getElementById("import-file");
 
   const SAMPLE = {
@@ -18,19 +16,6 @@
     p: "the login button submits your name and password",
     n: "forgot password link"
   };
-
-  let advanced = false;
-  document.body.classList.add("simple");
-
-  function setView(next) {
-    advanced = next;
-    document.body.classList.toggle("simple", !advanced);
-    viewSimple.classList.toggle("on", !advanced);
-    viewAdvanced.classList.toggle("on", advanced);
-    viewSimple.setAttribute("aria-pressed", String(!advanced));
-    viewAdvanced.setAttribute("aria-pressed", String(advanced));
-    advancedPanel.hidden = !advanced;
-  }
 
   function layers() {
     return {
@@ -55,7 +40,7 @@
 
   function pct(n) {
     if (typeof n !== "number" || !isFinite(n)) return "—";
-    return Math.round(n * 100) + "";
+    return String(Math.round(n * 100));
   }
 
   function paint(report) {
@@ -68,23 +53,25 @@
 
     const b = report.band || "idle";
     giant.className = "giant " + b;
-    giant.textContent = pct(report.triple);
+    var shown = pct(report.triple);
+    giant.textContent = shown === "—" ? shown : shown + "%";
+    giant.setAttribute("aria-label", "Overlap " + pct(report.triple) + " percent");
     kid.textContent = report.kid_plain || "";
-    shaLine.textContent = report.input_sha256 ? ("input_sha256 " + report.input_sha256) : "";
+    shaLine.textContent = report.input_sha256 ? ("Input hash " + report.input_sha256) : "";
 
     bandEl.className = "band " + b;
     const labels = {
-      perfect: "perfect alignment (1.0)",
-      acceptable: "acceptable (≥0.7) — paper's line, not a pass/fail of truth",
-      structural_inconsistency: "structural inconsistency (<0.7)"
+      perfect: "Complete overlap (1.0).",
+      acceptable: "Overlap is at least 0.7. That is the paper's line, not a verdict.",
+      structural_inconsistency: "Overlap is below 0.7."
     };
-    bandEl.textContent = "Band: " + (labels[b] || b);
+    bandEl.textContent = labels[b] || b;
 
     typesEl.innerHTML = "";
     const types = report.types || [];
     if (!types.length) {
       const li = document.createElement("li");
-      li.textContent = "No mismatch type matched. Alignment may still need human validation.";
+      li.textContent = "No mismatch type matched. A person should still read the three boxes.";
       typesEl.appendChild(li);
     } else {
       types.forEach(function (code) {
@@ -119,11 +106,18 @@
 
     if (report.gate) {
       gateLine.textContent = report.gate.passed
-        ? "Gate PASS — triple ≥ " + report.gate.min
-        : "Gate FAIL — triple < " + report.gate.min;
+        ? "The 0.7 line passed. Overlap is at least " + report.gate.min + "."
+        : "The 0.7 line did not pass. Overlap is below " + report.gate.min + ".";
     } else {
       gateLine.textContent = "";
     }
+  }
+
+  function fail(reason, next) {
+    bandEl.className = "band structural_inconsistency";
+    bandEl.textContent = reason;
+    kid.textContent = next;
+    if (advanced) advanced.open = true;
   }
 
   function run(mode) {
@@ -137,17 +131,17 @@
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
       .then(function (pair) {
         if (!pair.ok) {
-          bandEl.className = "band structural_inconsistency";
-          bandEl.textContent = "Request failed: " + (pair.j && pair.j.error ? pair.j.error : "error");
-          kid.textContent = "That did not work. Check the boxes and try again.";
+          var why = pair.j && pair.j.error ? pair.j.error : "The request did not succeed.";
+          fail(why, "Check the boxes, then press Score again.");
           return;
         }
         paint(pair.j);
       })
-      .catch(function (err) {
-        bandEl.className = "band structural_inconsistency";
-        bandEl.textContent = "Request failed: " + err;
-        kid.textContent = "That did not work. This UI only runs on 127.0.0.1.";
+      .catch(function () {
+        fail(
+          "This page could not reach the local program.",
+          "Keep this tab on 127.0.0.1 and press Score again."
+        );
       });
   }
 
@@ -167,14 +161,18 @@
     ev.preventDefault();
     run("score");
   });
-  document.getElementById("classify").addEventListener("click", function () { run("classify"); });
-  document.getElementById("gate").addEventListener("click", function () { run("gate"); });
+  document.getElementById("classify").addEventListener("click", function () {
+    advanced.open = true;
+    run("classify");
+  });
+  document.getElementById("gate").addEventListener("click", function () {
+    advanced.open = true;
+    run("gate");
+  });
   document.getElementById("sample").addEventListener("click", function () {
     fill(SAMPLE);
     run("score");
   });
-  viewSimple.addEventListener("click", function () { setView(false); });
-  viewAdvanced.addEventListener("click", function () { setView(true); });
 
   document.getElementById("import-btn").addEventListener("click", function () {
     importFile.click();
@@ -191,13 +189,13 @@
       }).then(function (r) { return r.json(); });
     }).then(function (layersIn) {
       if (layersIn && layersIn.error) {
-        kid.textContent = "Import failed: " + layersIn.error;
+        kid.textContent = "Could not import that file: " + layersIn.error + " Try a JSON or labeled text file.";
         return;
       }
       fill(layersIn);
       run("score");
-    }).catch(function (err) {
-      kid.textContent = "Import failed: " + err;
+    }).catch(function () {
+      kid.textContent = "Could not import that file. Try a JSON or labeled text file.";
     });
   });
 
@@ -210,17 +208,16 @@
       .then(function (r) { return r.json(); })
       .then(function (payload) {
         if (payload.error) {
-          kid.textContent = "Export failed: " + payload.error;
+          kid.textContent = "Could not export: " + payload.error + " Press Score, then Export again.";
           return;
         }
         if (payload.report) paint(payload.report);
         download(payload.filename_json || "az-clce-report.json", payload.json, "application/json");
         download(payload.filename_txt || "az-clce-receipt.txt", payload.txt, "text/plain");
+        shaLine.textContent = (shaLine.textContent ? shaLine.textContent + " · " : "") + "Saved the report and the receipt.";
       })
-      .catch(function (err) {
-        kid.textContent = "Export failed: " + err;
+      .catch(function () {
+        kid.textContent = "Could not export. Press Score, then Export again.";
       });
   });
-
-  setView(false);
 })();

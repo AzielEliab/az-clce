@@ -83,7 +83,7 @@ def test_manifest_hash_mismatch(tmp_path) -> None:
 def test_cli_clce_verify_transfer(tmp_path, capsys) -> None:
     src = tmp_path / "layers.json"
     src.write_text(json.dumps(PERFECT), encoding="utf-8")
-    code = clce_main(["verify-transfer", "--no-queue", str(src)])
+    code = clce_main(["verify-transfer", "--json", "--no-queue", str(src)])
     payload = json.loads(capsys.readouterr().out)
     assert code == 0
     assert payload["ok"] is True
@@ -94,7 +94,7 @@ def test_cli_spre_score_and_verify(tmp_path, capsys) -> None:
     assert "spre 0.3.0" in capsys.readouterr().out
     src = tmp_path / "layers.json"
     src.write_text(json.dumps(PERFECT), encoding="utf-8")
-    code = spre_main(["verify-transfer", "--no-queue", str(src)])
+    code = spre_main(["verify-transfer", "--json", "--no-queue", str(src)])
     payload = json.loads(capsys.readouterr().out)
     assert code == 0
     assert payload["ok"] is True

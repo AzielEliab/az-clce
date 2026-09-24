@@ -37,6 +37,8 @@ def test_help_text_contains_ui_and_version(capsys) -> None:
     assert "gate" in out
     assert "doctor" in out
     assert "verify-transfer" in out
+    assert "Examples:" in out
+    assert "not a lie detector" not in out.lower()
 
 
 def test_cli_score_json(capsys) -> None:
@@ -122,6 +124,27 @@ def test_cli_score_import_export(tmp_path, capsys) -> None:
     receipt = out.with_suffix(".txt")
     assert receipt.is_file()
     assert payload["input_sha256"] in receipt.read_text(encoding="utf-8")
+
+
+def test_bare_command_welcomes(capsys) -> None:
+    assert main([]) == 0
+    out = capsys.readouterr().out
+    assert "clce ui" in out
+    assert "clce --help" in out
+    assert "Author: Aziel Eliab" in out
+    assert "required" not in out.lower()
+
+
+def test_unknown_command_has_next_step(capsys) -> None:
+    try:
+        main(["bogus"])
+    except SystemExit as exc:
+        assert exc.code == 2
+    else:
+        raise AssertionError("expected exit 2")
+    err = capsys.readouterr().err
+    assert 'Unknown command "bogus"' in err
+    assert "clce --help" in err
 
 
 def test_cli_help_lists_import_export(capsys) -> None:

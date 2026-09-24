@@ -240,7 +240,9 @@ class AzClceApp extends StatelessWidget {
     return MaterialApp(
       title: 'AZ-CLCE',
       debugShowCheckedModeBanner: false,
-      theme: buildAppTheme(),
+      theme: buildLightTheme(),
+      darkTheme: buildAppTheme(),
+      themeMode: ThemeMode.system,
       home: const FormPage(),
     );
   }
@@ -259,7 +261,6 @@ class _FormPageState extends State<FormPage> {
   final _p = TextEditingController();
   final _n = TextEditingController();
   Report? _report;
-  bool _advanced = false;
 
   static const _sample = {
     'r': 'a blue login button that says submit',
@@ -392,25 +393,18 @@ class _FormPageState extends State<FormPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('AZ-CLCE'),
-        actions: [
-          TextButton(
-            onPressed: () => setState(() => _advanced = !_advanced),
-            child: Text(_advanced ? 'Simple' : 'Advanced'),
-          ),
-        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            'Cross-Layer Consistency Engine. Inconsistency, not intent.',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: kGold,
-                  fontStyle: FontStyle.italic,
-                ),
+            'Compare three descriptions',
+            style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
-          const Text(limitation),
+          const Text(
+            'See how much what it looks like, what was written, and what it actually does overlap. Then press Score.',
+          ),
           const SizedBox(height: 16),
           TextField(
             controller: _r,
@@ -444,16 +438,9 @@ class _FormPageState extends State<FormPage> {
             ),
           ),
           const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              FilledButton(onPressed: _run, child: const Text('Score')),
-              OutlinedButton(onPressed: _fillSample, child: const Text('Fill sample')),
-              OutlinedButton(onPressed: _importText, child: const Text('Import')),
-              OutlinedButton(onPressed: _exportText, child: const Text('Export')),
-            ],
-          ),
+          FilledButton(onPressed: _run, child: const Text('Score')),
+          const SizedBox(height: 8),
+          OutlinedButton(onPressed: _fillSample, child: const Text('Try a sample')),
           if (report != null) ...[
             const SizedBox(height: 16),
             Text(
@@ -467,14 +454,21 @@ class _FormPageState extends State<FormPage> {
             ),
             const SizedBox(height: 8),
             Text(report.kidPlain),
-            if (_advanced) ...[
-              const SizedBox(height: 16),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+          ],
+          const SizedBox(height: 16),
+          ExpansionTile(
+            title: const Text('Advanced'),
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    OutlinedButton(onPressed: _importText, child: const Text('Import')),
+                    const SizedBox(height: 8),
+                    OutlinedButton(onPressed: _exportText, child: const Text('Export')),
+                    if (report != null) ...[
+                      const SizedBox(height: 12),
                       Text('triple  ${report.triple.toStringAsFixed(4)}'),
                       Text('R↔D     ${report.rd.toStringAsFixed(4)}'),
                       Text('D↔P     ${report.dp.toStringAsFixed(4)}'),
@@ -482,8 +476,7 @@ class _FormPageState extends State<FormPage> {
                       Text('avg     ${report.avg.toStringAsFixed(4)}'),
                       Text('CLCE+   ${report.plus.toStringAsFixed(4)}'),
                       const SizedBox(height: 8),
-                      Text('band: ${report.band}',
-                          style: const TextStyle(color: kGold)),
+                      Text('band: ${report.band}'),
                       const SizedBox(height: 8),
                       if (report.types.isEmpty)
                         const Text('No mismatch type matched.')
@@ -497,14 +490,22 @@ class _FormPageState extends State<FormPage> {
                             ),
                           );
                         }),
-                      const SizedBox(height: 8),
-                      const Text(limitation, style: TextStyle(fontSize: 12)),
                     ],
-                  ),
+                  ],
                 ),
               ),
             ],
-          ],
+          ),
+          ExpansionTile(
+            title: const Text('About'),
+            children: const [
+              Padding(
+                padding: EdgeInsets.only(bottom: 12),
+                child: Text(limitation),
+              ),
+              Text('Author: Aziel Eliab'),
+            ],
+          ),
         ],
       ),
     );

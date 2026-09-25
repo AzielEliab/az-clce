@@ -15,7 +15,7 @@ DEST="${STAGE}/${NAME}"
 mkdir -p "$DEST"
 # Ship the installable tree, not git or local venvs.
 for item in clce spre tests docs examples mobile workers SKILL.md README.md \
-  CONTRIBUTING.md LICENSE MANIFEST.in pyproject.toml install.sh scripts; do
+  RUN.txt CONTRIBUTING.md LICENSE MANIFEST.in pyproject.toml install.sh scripts; do
   if [ -e "$item" ]; then
     cp -a "$item" "$DEST/"
   fi

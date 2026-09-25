@@ -38,6 +38,11 @@ def test_ui_get_root_contains_clce() -> None:
         with urllib.request.urlopen(f"http://127.0.0.1:{port}/style.css", timeout=3) as resp:
             css = resp.read().decode("utf-8")
         assert "c9a227" in css or "--gold" in css
+        assert "prefers-color-scheme" in css
+        assert ":focus-visible" in css
+        assert 'id="advanced"' in html
+        assert 'id="about"' in html
+        assert html.lower().find("inconsistency, not intent") > html.lower().find('id="about"')
         req = urllib.request.Request(
             f"http://127.0.0.1:{port}/api/score",
             data=json.dumps(PERFECT).encode("utf-8"),

@@ -1,0 +1,9 @@
+AZ-CLCE
+Author: Aziel Eliab
+
+1. python -m venv .venv && source .venv/bin/activate && pip install -e .
+2. clce ui
+3. Open the address it prints (http://127.0.0.1:8845/) and press Score.
+
+Check this install: clce doctor
+Commands: clce --help

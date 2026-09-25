@@ -26,7 +26,10 @@ python -m pip install -U pip
 python -m pip install -e .
 
 echo
-echo "Installed AZ-CLCE."
-echo "Run:  clce ui"
-echo "Then open http://127.0.0.1:8845  (loopback only)"
+echo "AZ-CLCE is installed in $(pwd)."
+echo
+echo "1. source .venv/bin/activate"
+echo "2. clce ui"
+echo "3. Open the address it prints (this computer only)."
+echo
 echo "Author: Aziel Eliab."

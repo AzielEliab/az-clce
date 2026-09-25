@@ -3,167 +3,169 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AZ-CLCE — Cross-Layer Consistency Engine</title>
+  <meta name="color-scheme" content="light dark">
+  <title>AZ-CLCE</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <header>
-    <div class="tag">AZ-CLCE · v0.3.0 · SPRE · loopback · advisory</div>
-    <h1>AZ-CLCE</h1>
-    <p class="motto">Cross-Layer Consistency Engine. Inconsistency, not intent.</p>
-    <p class="lede">
-      Type four stories. We check if they match. We do not guess why.
-      Type D is a label, not a finding of malice. Human validation required.
-    </p>
+  <header class="bar">
+    <div>
+      <p class="product">AZ-CLCE</p>
+      <h1>Compare three descriptions</h1>
+    </div>
+    <p class="by">Aziel Eliab</p>
   </header>
 
-  <aside class="banner limit" role="note">
-    CLCE detects inconsistency, not intent. Type D is a label, not a finding of
-    malice. Not a cybersecurity exploit, not a scanner of other people's systems,
-    not a lie detector. Advisory scores only. Threshold 0.7 is the paper's
-    acceptable line, not a pass/fail of truth. Loopback UI. Self-contained CSS. No telemetry.
-  </aside>
+  <main>
+    <p class="lede">See how much what it looks like, what was written, and what it actually does overlap. Then press Score.</p>
 
-  <div class="view-toggle" role="group" aria-label="Simple or advanced view">
-    <button type="button" id="view-simple" class="view on" aria-pressed="true">Simple</button>
-    <button type="button" id="view-advanced" class="view" aria-pressed="false">Advanced</button>
-  </div>
-
-  <form id="clce-form" autocomplete="off">
-    <fieldset>
-      <legend>Four boxes</legend>
-
+    <form id="clce-form" autocomplete="off">
       <label for="r">
         <span class="kicker">What it looks like (R)</span>
-        The picture, the screen, the diagram.
+        The picture, the screen, or the diagram.
       </label>
       <textarea id="r" name="r" rows="4" placeholder="a blue login button that says submit"></textarea>
 
       <label for="d">
         <span class="kicker">What they wrote (D)</span>
-        The words, the help text, the claim.
+        The words, the help text, or the claim.
       </label>
       <textarea id="d" name="d" rows="4" placeholder="the login form submits your name"></textarea>
 
       <label for="p">
         <span class="kicker">What it actually does (P)</span>
-        The real thing that happens.
+        The thing that happens.
       </label>
       <textarea id="p" name="p" rows="4" placeholder="the login button submits your name"></textarea>
 
       <label for="n">
         <span class="kicker">Missing pieces (N)</span>
-        Stuff you expected but do not see. Optional. Empty is OK.
+        Optional. Leave this empty if nothing is missing.
       </label>
       <textarea id="n" name="n" rows="2" placeholder="forgot password link"></textarea>
-    </fieldset>
 
-    <div class="actions">
-      <button type="submit" id="score" data-mode="score">Score</button>
-      <button type="button" id="sample">Fill sample</button>
-      <button type="button" id="import-btn">Import</button>
-      <button type="button" id="export-btn">Export</button>
-      <button type="button" id="classify" data-mode="classify" class="advanced-only">Classify</button>
-      <button type="button" id="gate" data-mode="gate" class="advanced-only">Gate ≥ 0.7</button>
-    </div>
-    <input id="import-file" type="file" accept=".json,.txt,application/json,text/plain" hidden>
-  </form>
+      <div class="actions">
+        <button type="submit" id="score" class="primary">Score</button>
+        <button type="button" id="sample" class="ghost">Try a sample</button>
+      </div>
+    </form>
 
-  <section class="report" aria-live="polite">
-    <p id="giant-score" class="giant idle" aria-label="Score">—</p>
-    <p id="kid-plain" class="kid">Fill the boxes (or click Fill sample) and press Score.
-      Empty boxes are OK. We only look for mismatches, never motives.</p>
-    <div id="advanced-panel" class="advanced-panel" hidden>
-      <h2>Jaccard &amp; types A–D</h2>
-      <dl id="metrics">
-        <div><dt>triple</dt><dd id="m-triple">—</dd></div>
-        <div><dt>R↔D</dt><dd id="m-rd">—</dd></div>
-        <div><dt>D↔P</dt><dd id="m-dp">—</dd></div>
-        <div><dt>R↔P</dt><dd id="m-rp">—</dd></div>
-        <div><dt>pairwise avg</dt><dd id="m-avg">—</dd></div>
-        <div><dt>CLCE+</dt><dd id="m-plus">—</dd></div>
-      </dl>
-      <p id="sha-line" class="sha-line"></p>
-      <p id="band" class="band idle">No run yet.</p>
-      <ul id="types" class="types"></ul>
-      <p id="gate-line" class="gate-line"></p>
-    </div>
-  </section>
+    <section class="report" aria-live="polite">
+      <h2 class="visually-hidden">Result</h2>
+      <p id="giant-score" class="giant idle" aria-label="Overlap">—</p>
+      <p id="kid-plain" class="kid">Press Score when the boxes are ready. Empty boxes are fine.</p>
+    </section>
 
-  
-<section class="card" id="aziel-json-io">
-  <h2>Import / Export JSON</h2>
-  <p class="help">Tap Import JSON file to pick a .json. Export JSON saves the current session locally. Nothing is uploaded.</p>
-  <input id="aziel-import-json" type="file" accept="application/json,.json">
-  <p>
-    <button type="button" id="aziel-import-json-btn">Import JSON file</button>
-    <button type="button" id="aziel-export-json-btn">Export JSON</button>
-  </p>
-  <p class="help" id="aziel-json-status"></p>
-</section>
+    <details id="advanced" class="fold">
+      <summary>Advanced</summary>
+      <div class="fold-body">
+        <p class="help">Classify, the 0.7 line, files, and the overlap numbers.</p>
+        <div class="actions">
+          <button type="button" id="classify" data-mode="classify" class="ghost">Classify</button>
+          <button type="button" id="gate" data-mode="gate" class="ghost">Check 0.7 line</button>
+          <button type="button" id="import-btn" class="ghost">Import</button>
+          <button type="button" id="export-btn" class="ghost">Export</button>
+        </div>
+        <input id="import-file" type="file" accept=".json,.txt,application/json,text/plain" hidden>
 
-<footer>
-    <p>Apache-2.0 · Aziel Eliab · 2026 · Bound to 127.0.0.1:8845 · Forks welcome and always allowed.</p>
-    <p class="foot-note">Standalone from ForgeReceipts, ZionPattern, DecisionGATE, AZ-OS, Glossa Filter.</p>
+        <div id="advanced-panel" class="advanced-panel">
+          <h2>Overlap numbers</h2>
+          <dl id="metrics">
+            <div><dt>triple</dt><dd id="m-triple">—</dd></div>
+            <div><dt>R↔D</dt><dd id="m-rd">—</dd></div>
+            <div><dt>D↔P</dt><dd id="m-dp">—</dd></div>
+            <div><dt>R↔P</dt><dd id="m-rp">—</dd></div>
+            <div><dt>pairwise avg</dt><dd id="m-avg">—</dd></div>
+            <div><dt>CLCE+</dt><dd id="m-plus">—</dd></div>
+          </dl>
+          <p id="band" class="band idle">No score yet.</p>
+          <ul id="types" class="types"></ul>
+          <p id="gate-line" class="gate-line"></p>
+          <p id="sha-line" class="sha-line"></p>
+        </div>
+
+        <section class="card" id="aziel-json-io">
+          <h2>Save these boxes</h2>
+          <p class="help">Import a .json file, or export the boxes on this computer. Nothing is uploaded.</p>
+          <input id="aziel-import-json" type="file" accept="application/json,.json" hidden>
+          <p class="actions">
+            <button type="button" id="aziel-import-json-btn" class="ghost">Import JSON file</button>
+            <button type="button" id="aziel-export-json-btn" class="ghost">Export JSON</button>
+          </p>
+          <p class="help" id="aziel-json-status"></p>
+        </section>
+      </div>
+    </details>
+
+    <details id="about" class="fold">
+      <summary>About</summary>
+      <div class="fold-body">
+        <p>CLCE detects inconsistency, not intent. Type D is a label, not a finding of malice. Human validation required. Not a cybersecurity exploit, not a scanner of other people's systems, not a lie detector. Advisory scores only. Threshold 0.7 is the paper's acceptable line, not a pass/fail of truth.</p>
+        <p>This page listens on this computer only. No telemetry. In a terminal, run <code>clce doctor</code> to check the install.</p>
+        <p>Author: Aziel Eliab. Apache-2.0. Forks are welcome.</p>
+      </div>
+    </details>
+  </main>
+
+  <footer>
+    <p>Aziel Eliab · 2026 · this computer only</p>
   </footer>
   <script src="/app.js"></script>
-
-<script>
-(function(){
-  var file = document.getElementById("aziel-import-json");
-  var imp = document.getElementById("aziel-import-json-btn");
-  var exp = document.getElementById("aziel-export-json-btn");
-  var status = document.getElementById("aziel-json-status");
-  if (!file || !imp || !exp) return;
-  function say(m){ if (status) status.textContent = m; }
-  function collect(){
-    var data = { product: document.title || "", exported_at: new Date().toISOString(), author: "Aziel Eliab" };
-    document.querySelectorAll("input, select, textarea").forEach(function(el){
-      if (!el.id || el.type === "file" || el.type === "password") return;
-      data[el.id] = el.type === "checkbox" ? el.checked : el.value;
-    });
-    if (window.__azielLastJson && typeof window.__azielLastJson === "object") {
-      data.last = window.__azielLastJson;
+  <script>
+  (function(){
+    var file = document.getElementById("aziel-import-json");
+    var imp = document.getElementById("aziel-import-json-btn");
+    var exp = document.getElementById("aziel-export-json-btn");
+    var status = document.getElementById("aziel-json-status");
+    if (!file || !imp || !exp) return;
+    function say(m){ if (status) status.textContent = m; }
+    function collect(){
+      var data = { product: document.title || "", exported_at: new Date().toISOString(), author: "Aziel Eliab" };
+      document.querySelectorAll("input, select, textarea").forEach(function(el){
+        if (!el.id || el.type === "file" || el.type === "password") return;
+        data[el.id] = el.type === "checkbox" ? el.checked : el.value;
+      });
+      if (window.__azielLastJson && typeof window.__azielLastJson === "object") {
+        data.last = window.__azielLastJson;
+      }
+      return data;
     }
-    return data;
-  }
-  function apply(obj){
-    if (!obj || typeof obj !== "object") return;
-    window.__azielLastJson = obj;
-    Object.keys(obj).forEach(function(k){
-      if (k === "last" || k === "product" || k === "exported_at" || k === "author") return;
-      var el = document.getElementById(k);
-      if (!el || el.type === "file" || el.type === "password") return;
-      if (el.type === "checkbox") el.checked = !!obj[k];
-      else if ("value" in el) el.value = obj[k];
-    });
-    var ta = document.querySelector("textarea");
-    if (ta && obj && !obj[ta.id] && typeof obj === "object") {
-      try { if (!ta.value) ta.value = JSON.stringify(obj, null, 2); } catch (e) {}
+    function apply(obj){
+      if (!obj || typeof obj !== "object") return;
+      window.__azielLastJson = obj;
+      Object.keys(obj).forEach(function(k){
+        if (k === "last" || k === "product" || k === "exported_at" || k === "author") return;
+        var el = document.getElementById(k);
+        if (!el || el.type === "file" || el.type === "password") return;
+        if (el.type === "checkbox") el.checked = !!obj[k];
+        else if ("value" in el) el.value = obj[k];
+      });
+      var ta = document.querySelector("textarea");
+      if (ta && obj && !obj[ta.id] && typeof obj === "object") {
+        try { if (!ta.value) ta.value = JSON.stringify(obj, null, 2); } catch (e) {}
+      }
     }
-  }
-  imp.addEventListener("click", function(){ file.click(); });
-  file.addEventListener("change", function(){
-    var f = file.files && file.files[0];
-    if (!f) return;
-    var r = new FileReader();
-    r.onload = function(){
-      try { apply(JSON.parse(String(r.result || "{}"))); say("Imported " + f.name); }
-      catch (e) { say("Invalid JSON"); }
-    };
-    r.readAsText(f);
-  });
-  exp.addEventListener("click", function(){
-    var blob = new Blob([JSON.stringify(collect(), null, 2)], {type: "application/json"});
-    var a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "session.json";
-    a.click();
-    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 800);
-    say("Exported JSON");
-  });
-})();
-</script>
-
+    imp.addEventListener("click", function(){ file.click(); });
+    file.addEventListener("change", function(){
+      var f = file.files && file.files[0];
+      if (!f) return;
+      var r = new FileReader();
+      r.onload = function(){
+        try { apply(JSON.parse(String(r.result || "{}"))); say("Imported " + f.name + ". Press Score."); }
+        catch (e) { say("That file is not JSON. Choose another .json file."); }
+      };
+      r.readAsText(f);
+    });
+    exp.addEventListener("click", function(){
+      var blob = new Blob([JSON.stringify(collect(), null, 2)], {type: "application/json"});
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "session.json";
+      a.click();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 800);
+      say("Saved session.json on this computer.");
+    });
+  })();
+  </script>
 </body>
 </html>
